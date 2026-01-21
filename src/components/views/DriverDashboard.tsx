@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { Truck, Home, Wallet, Clock, User as UserIcon, Wrench } from 'lucide-react';
 import { Shipment, ShipmentStatus, User } from '../../types';
+import { useStore } from '../../context/StoreContext';
 
 // Components
 import { DriverTopBar } from '../dashboard/driver/DriverTopBar';
@@ -23,18 +24,6 @@ import { BankDetailsModal } from '../dashboard/driver/BankDetailsModal';
 import { CustomerChatModal } from '../dashboard/driver/CustomerChatModal';
 import { SOSModal } from '../dashboard/driver/SOSModal';
 
-interface DriverDashboardProps {
-  user: User;
-  availableJobs: Shipment[];
-  activeJob: Shipment | null;
-  jobHistory: Shipment[];
-  incomingJob?: Shipment | null;
-  onAcceptJob: (id: string) => void;
-  onUpdateStatus: (id: string, status: ShipmentStatus) => void;
-  onDismissJobAlert?: () => void;
-  onLogout: () => void;
-}
-
 // Mock Chat Messages (Dispatch)
 const INITIAL_CHAT = [
     { id: 1, sender: 'Dispatch', text: 'Hello, please confirm when you arrive at the pickup point.', time: '10:30 AM', isMe: false },
@@ -46,9 +35,15 @@ const INITIAL_CUSTOMER_CHAT = [
     { id: 1, sender: 'Customer', text: 'Hi! Please call me when you reach the gate.', time: '12:15 PM', isMe: false },
 ];
 
-export const DriverDashboard: React.FC<DriverDashboardProps> = ({ 
-    user, availableJobs, activeJob, jobHistory, incomingJob, onAcceptJob, onUpdateStatus, onDismissJobAlert, onLogout 
-}) => {
+export const DriverDashboard: React.FC = () => {
+  const { currentUser, shipments, incomingJob, acceptJob, updateStatus, dismissJobAlert, logout } = useStore();
+  
+  // Derived State from Store
+  const user = currentUser!;
+  const availableJobs = shipments.filter(s => s.status === ShipmentStatus.PENDING);
+  const activeJob = shipments.find(s => s.driverId === user.id && [ShipmentStatus.ASSIGNED, ShipmentStatus.PICKED_UP, ShipmentStatus.IN_TRANSIT].includes(s.status)) || null;
+  const jobHistory = shipments.filter(s => s.status === ShipmentStatus.DELIVERED || s.status === ShipmentStatus.CANCELLED);
+
   const [view, setView] = useState<'home' | 'history' | 'profile' | 'maintenance' | 'wallet' | 'support'>('home');
   const [isOnline, setIsOnline] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -161,6 +156,8 @@ export const DriverDashboard: React.FC<DriverDashboardProps> = ({
       alert("Bank details updated successfully!");
   };
 
+  if (!user) return null;
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans w-full relative" ref={containerRef}>
       {showNotifications && <div className="fixed inset-0 z-[55]" onClick={() => setShowNotifications(false)}></div>}
@@ -173,11 +170,11 @@ export const DriverDashboard: React.FC<DriverDashboardProps> = ({
           setIsOnline={setIsOnline} 
           showNotifications={showNotifications} 
           setShowNotifications={setShowNotifications} 
-          onLogout={onLogout} 
+          onLogout={logout} 
       />
 
       <main>
-         {incomingJob && onDismissJobAlert && <JobRequestModal job={incomingJob} onAccept={onAcceptJob} onDecline={onDismissJobAlert} />}
+         {incomingJob && <JobRequestModal job={incomingJob} onAccept={acceptJob} onDecline={dismissJobAlert} />}
          {showNotifications && <DriverNotificationPanel />}
          {selectedHistoryItem && <DriverJobDetailsModal job={selectedHistoryItem} onClose={() => setSelectedHistoryItem(null)} />}
          {viewingDoc && <DocumentModal viewingDoc={viewingDoc} onClose={() => setViewingDoc(null)} />}
@@ -187,8 +184,8 @@ export const DriverDashboard: React.FC<DriverDashboardProps> = ({
 
          {view === 'home' && (
              !isOnline ? <DriverOfflineView setIsOnline={setIsOnline} /> :
-             activeJob ? <ActiveJobView activeJob={activeJob} onUpdateStatus={onUpdateStatus} setShowCustomerChat={setShowCustomerChat} setShowSOS={setShowSOS} /> :
-             <DriverDashboardHome user={user} availableJobs={availableJobs} onAcceptJob={onAcceptJob} setView={setView} />
+             activeJob ? <ActiveJobView activeJob={activeJob} onUpdateStatus={updateStatus} setShowCustomerChat={setShowCustomerChat} setShowSOS={setShowSOS} /> :
+             <DriverDashboardHome user={user} availableJobs={availableJobs} onAcceptJob={acceptJob} setView={setView} />
          )}
 
          {view === 'history' && <DriverHistoryView jobHistory={jobHistory} setSelectedHistoryItem={setSelectedHistoryItem} />}

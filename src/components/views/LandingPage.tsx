@@ -1,20 +1,17 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '../ui/Button';
-import { Truck, ShieldCheck, MapPin, ArrowRight, Clock, Star, ChevronDown, Package, Navigation, Globe, Plus, Minus, Check, Play, Apple, Building, LayoutDashboard, Search, Wallet, Bell, ChevronRight } from 'lucide-react';
+import { Truck, ShieldCheck, MapPin, ArrowRight, Clock, Navigation, Globe, Package, Building, Plus, Search, Wallet } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Link, useNavigate } from 'react-router-dom';
 
 gsap.registerPlugin(ScrollTrigger);
-
-import { Link, useNavigate } from 'react-router-dom';
 
 export const LandingPage: React.FC = () => {  
   const navigate = useNavigate();
   const onGetStarted = () => navigate('/auth');
   const onContact = () => navigate('/contact');
   const containerRef = useRef<HTMLDivElement>(null);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -25,36 +22,102 @@ export const LandingPage: React.FC = () => {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Hero Animations
-      gsap.from(".hero-text", {
-        y: 60,
+      // 1. Hero Animations - Timeline for Sequence
+      const tl = gsap.timeline();
+      
+      tl.from(".hero-text-line", {
+        y: 100,
         opacity: 0,
-        duration: 1.2,
+        duration: 1,
+        stagger: 0.15,
+        ease: "power4.out",
+        delay: 0.2
+      })
+      .from(".hero-sub", {
+        y: 20,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power2.out"
+      }, "-=0.5")
+      .from(".hero-search", {
+        scale: 0.9,
+        opacity: 0,
+        y: 20,
+        duration: 0.8,
+        ease: "back.out(1.7)"
+      }, "-=0.3")
+      .from(".hero-widget", {
+        x: 50,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out"
+      }, "-=0.6");
+
+      // 2. Services Stagger
+      gsap.from(".service-card", {
+        scrollTrigger: {
+          trigger: "#services",
+          start: "top 70%",
+        },
+        y: 100,
+        opacity: 0,
+        duration: 0.8,
         stagger: 0.2,
+        ease: "power2.out"
+      });
+
+      // 3. Features Section Split
+      gsap.from(".feature-left > *", {
+        scrollTrigger: {
+          trigger: "#features",
+          start: "top 60%",
+        },
+        x: -50,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power2.out"
+      });
+
+      gsap.from(".feature-right", {
+        scrollTrigger: {
+          trigger: "#features",
+          start: "top 60%",
+        },
+        x: 50,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power2.out"
+      });
+
+      // 4. Map Section Reveal
+      gsap.from(".map-container", {
+        scrollTrigger: {
+          trigger: ".map-section",
+          start: "top 65%",
+        },
+        scale: 0.95,
+        opacity: 0,
+        duration: 1,
         ease: "power3.out"
       });
 
-      // Scroll Animations for Sections
-      gsap.utils.toArray<HTMLElement>(".reveal-section").forEach((section) => {
-        gsap.from(section, {
-          y: 40,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: section,
-            start: "top 80%",
-          }
-        });
+       // 5. Why Choose Us Items
+       gsap.from(".feature-item", {
+        scrollTrigger: {
+          trigger: ".feature-list",
+          start: "top 80%",
+        },
+        y: 20,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.15,
+        ease: "power1.out"
       });
 
     }, containerRef);
     return () => ctx.revert();
   }, []);
-
-  const toggleFaq = (index: number) => {
-    setOpenFaq(openFaq === index ? null : index);
-  };
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-brand-orange/20" ref={containerRef}>
@@ -63,7 +126,7 @@ export const LandingPage: React.FC = () => {
       <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-4 border-b border-slate-100' : 'bg-transparent py-6'}`}>
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <div className="font-bold text-2xl flex items-center gap-2">
+            <div className="font-bold text-2xl flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               <div className="bg-brand-orange p-1.5 rounded-xl shadow-lg shadow-orange-500/20">
                 <Truck size={20} strokeWidth={3} className="text-white" />
               </div>
@@ -71,10 +134,9 @@ export const LandingPage: React.FC = () => {
             </div>
             
             <div className={`hidden md:flex space-x-10 text-sm font-medium ${scrolled ? 'text-slate-600' : 'text-white/90'}`}>
-              <button className="hover:text-brand-orange transition-colors">Home</button>
+              <button onClick={() => navigate('/')} className="hover:text-brand-orange transition-colors">Home</button>
               <button onClick={() => document.getElementById('services')?.scrollIntoView({behavior:'smooth'})} className="hover:text-brand-orange transition-colors">Solutions</button>
               <button onClick={() => document.getElementById('features')?.scrollIntoView({behavior:'smooth'})} className="hover:text-brand-orange transition-colors">Features</button>
-              <button onClick={() => document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'})} className="hover:text-brand-orange transition-colors">Pricing</button>
               <button onClick={onContact} className="hover:text-brand-orange transition-colors">Contact</button>
             </div>
             
@@ -100,27 +162,27 @@ export const LandingPage: React.FC = () => {
             alt="Logistics Ship" 
             className="w-full h-full object-cover"
           />
-          {/* Lighter Gradient Overlay - Teal/Blue tint instead of heavy black */}
+          {/* Lighter Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 via-slate-800/20 to-transparent mix-blend-multiply"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent"></div>
         </div>
 
         <div className="relative h-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center">
           <div className="max-w-4xl pt-20">
-            <h1 className="text-6xl md:text-8xl font-black text-white leading-[0.95] tracking-tight mb-8 hero-text drop-shadow-sm">
-              MOST AFFORDABLE <br/>
-              WAY TO SHIP <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-yellow-400">PRODUCTS</span>
+            <h1 className="text-6xl md:text-8xl font-black text-white leading-[0.95] tracking-tight mb-8 drop-shadow-sm overflow-hidden">
+              <span className="block hero-text-line">MOST AFFORDABLE</span>
+              <span className="block hero-text-line">WAY TO SHIP</span>
+              <span className="block hero-text-line text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-yellow-400">PRODUCTS</span>
             </h1>
             
-            <div className="flex flex-col sm:flex-row gap-6 hero-text items-start max-w-2xl">
-               <p className="text-slate-100 text-lg md:text-xl leading-relaxed font-light drop-shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-6 items-start max-w-2xl overflow-hidden mb-12">
+               <p className="text-slate-100 text-lg md:text-xl leading-relaxed font-light drop-shadow-sm hero-sub">
                   Whether you're traveling for business, leisure, or a special occasion, our logistics network ensures your cargo arrives safely and on time.
                </p>
             </div>
 
             {/* Action Bar / Search Input Mock - Pill Shape */}
-            <div className="mt-12 hero-text bg-white p-2.5 rounded-full max-w-xl flex shadow-2xl items-center ring-4 ring-white/10">
+            <div className="hero-search bg-white p-2.5 rounded-full max-w-xl flex shadow-2xl items-center ring-4 ring-white/10">
                 <div className="flex-1 px-4 flex items-center border-r border-slate-100">
                     <MapPin className="text-slate-400 mr-2 shrink-0" size={18}/>
                     <div className="bg-slate-50 rounded-lg px-3 py-2 w-full">
@@ -133,30 +195,31 @@ export const LandingPage: React.FC = () => {
                        <input type="text" placeholder="Dropoff Point" className="w-full outline-none text-slate-700 font-medium placeholder:text-slate-400 bg-transparent text-sm"/>
                     </div>
                 </div>
-                <button className="bg-brand-dark text-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-brand-primary transition-colors shrink-0 shadow-lg">
-                    <ArrowRight size={20}/>
+                <button className="bg-brand-dark text-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-brand-primary transition-colors shrink-0 shadow-lg group">
+                    <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
                 </button>
             </div>
 
             {/* Floating Glass Widget (Bottom Right) */}
-            <div className="absolute bottom-12 right-8 lg:right-32 hidden lg:block hero-text z-20">
-               <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-[2rem] w-80 shadow-2xl">
+            <div className="absolute bottom-12 right-8 lg:right-32 hidden lg:block hero-widget z-20">
+               <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-[2rem] w-80 shadow-2xl hover:scale-105 transition-transform duration-500">
                   <div className="flex justify-between items-start mb-4">
                      <div>
                         <h3 className="text-white font-bold text-lg">Delivery Solutions</h3>
                         <p className="text-slate-300 text-xs">Your delivery data</p>
                      </div>
-                     <div className="bg-white/20 p-2 rounded-full text-white">
+                     <div className="bg-white/20 p-2 rounded-full text-white animate-spin-slow">
                         <Clock size={16}/>
                      </div>
                   </div>
-                  <div className="h-40 rounded-2xl overflow-hidden relative shadow-inner">
+                  <div className="h-40 rounded-2xl overflow-hidden relative shadow-inner group">
                       <img 
                         src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=800&q=80" 
-                        className="w-full h-full object-cover" 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                         alt="Delivery Truck"
                       />
-                      <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold shadow-sm text-slate-900">
+                      <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold shadow-sm text-slate-900 flex items-center gap-2">
+                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                          In Transit • 12:30 PM
                       </div>
                   </div>
@@ -169,8 +232,8 @@ export const LandingPage: React.FC = () => {
       {/* Services Section */}
       <div id="services" className="py-24 bg-white relative z-10">
          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-16 reveal-section">
-               <div>
+            <div className="flex flex-col md:flex-row justify-between items-end mb-16">
+               <div className="reveal-section">
                   <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase tracking-tight">Our Services</h2>
                   <p className="text-slate-500 mt-4 max-w-md text-lg">Comprehensive logistics solutions tailored for speed, safety, and reliability.</p>
                </div>
@@ -182,18 +245,21 @@ export const LandingPage: React.FC = () => {
                   { title: 'Last-Mile Delivery', img: 'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?auto=format&fit=crop&w=800&q=80', icon: Package, color: 'bg-orange-100 text-orange-600', desc: 'Fast local deliveries.' },
                   { title: 'Corporate Fleets', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated business logistics.' }
                ].map((service, idx) => (
-                  <div key={idx} className="group relative rounded-[2.5rem] overflow-hidden h-[450px] cursor-pointer reveal-section shadow-lg hover:shadow-2xl transition-all duration-500">
+                  <div key={idx} className="service-card group relative rounded-[2.5rem] overflow-hidden h-[450px] cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500">
                      <img src={service.img} alt={service.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent"></div>
+                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
                      <div className="absolute top-8 left-8">
-                        <div className={`w-12 h-12 ${service.color} rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm`}>
+                        <div className={`w-12 h-12 ${service.color} rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm group-hover:rotate-12 transition-transform duration-300`}>
                             <service.icon size={24} />
                         </div>
                      </div>
-                     <div className="absolute bottom-0 left-0 p-8 w-full">
+                     <div className="absolute bottom-0 left-0 p-8 w-full transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                         <h3 className="text-3xl font-bold text-white mb-2">{service.title}</h3>
                         <div className="flex justify-between items-end">
-                            <p className="text-slate-200 font-medium">{service.desc}</p>
+                            <p className="text-slate-200 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 transform translate-y-2 group-hover:translate-y-0">{service.desc}</p>
+                            <div className="bg-white/20 p-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                <ArrowRight size={20}/>
+                            </div>
                         </div>
                      </div>
                   </div>
@@ -208,7 +274,7 @@ export const LandingPage: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-16 items-center">
                
                {/* Left Content */}
-               <div className="w-full lg:w-1/2 reveal-section">
+               <div className="w-full lg:w-1/2 feature-left">
                   <div className="inline-block px-4 py-1.5 rounded-full bg-blue-100 text-brand-primary font-bold text-xs uppercase tracking-wide mb-6">
                      Why Choose Us
                   </div>
@@ -219,14 +285,14 @@ export const LandingPage: React.FC = () => {
                      We leverage technology to streamline your supply chain. From verified drivers to real-time tracking, we provide the tools you need to scale.
                   </p>
 
-                  <div className="space-y-6">
+                  <div className="space-y-6 feature-list">
                      {[
                         { title: 'Verified Drivers', text: 'All drivers undergo rigorous background checks.', icon: ShieldCheck },
                         { title: 'Real-Time Tracking', text: 'Monitor your cargo location 24/7.', icon: Navigation },
-                        { title: 'Insurance Coverage', text: 'Comprehensive goods-in-transit protection.', icon: Check }
+                        { title: 'Insurance Coverage', text: 'Comprehensive goods-in-transit protection.', icon: ShieldCheck }
                      ].map((feat, i) => (
-                        <div key={i} className="flex items-start bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-brand-orange/30 transition-colors">
-                           <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-brand-primary mr-5 shrink-0">
+                        <div key={i} className="feature-item flex items-start bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-brand-orange/30 transition-all hover:-translate-y-1 hover:shadow-md cursor-default">
+                           <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-brand-primary mr-5 shrink-0 group-hover:bg-brand-primary group-hover:text-white transition-colors">
                               <feat.icon size={24} />
                            </div>
                            <div>
@@ -239,8 +305,8 @@ export const LandingPage: React.FC = () => {
                </div>
 
                {/* Right Side - Dashboard Mockup matching CustomerDashboard.tsx */}
-               <div className="w-full lg:w-1/2 relative reveal-section pl-0 lg:pl-10">
-                  <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-200 h-[600px] border-[8px] border-white bg-slate-50 select-none">
+               <div className="w-full lg:w-1/2 relative feature-right pl-0 lg:pl-10">
+                  <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-200 h-[600px] border-[8px] border-white bg-slate-50 select-none hover:shadow-slate-300/50 transition-shadow duration-500">
                      
                      {/* Mock Top Bar */}
                      <div className="bg-white/90 backdrop-blur-sm border-b border-slate-200 p-4 flex justify-between items-center sticky top-0 z-10">
@@ -278,18 +344,18 @@ export const LandingPage: React.FC = () => {
 
                         {/* Stats Grid */}
                         <div className="grid grid-cols-3 gap-4">
-                           <div className="col-span-1 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm relative overflow-hidden">
+                           <div className="col-span-1 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm relative overflow-hidden group">
                               <div className="relative z-10">
                                  <div className="flex items-center gap-2 mb-2">
                                      <div className="p-1 bg-blue-50 text-brand-primary rounded">
                                         <Wallet size={12} />
                                      </div>
-                                     <p className="text-[10px] text-slate-500 font-bold uppercase">Wallet Balance</p>
+                                     <p className="text-[10px] text-slate-500 font-bold uppercase">Wallet</p>
                                  </div>
                                  <p className="text-xl font-bold mb-3 text-slate-900">₦85,000</p>
                                  <div className="bg-brand-primary text-white w-fit px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-lg shadow-blue-500/20">Top Up</div>
                               </div>
-                              <div className="absolute -bottom-4 -right-4 bg-blue-50 w-16 h-16 rounded-full blur-xl"></div>
+                              <div className="absolute -bottom-4 -right-4 bg-blue-50 w-16 h-16 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
                            </div>
                            <div className="col-span-1 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
                               <div className="flex items-center gap-2 mb-2 text-slate-500">
@@ -324,7 +390,7 @@ export const LandingPage: React.FC = () => {
                               <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-2 ring-white"></div>
                               <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-2 ring-white"></div>
                               <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-2 ring-white"></div>
-                              <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-4 ring-blue-50"></div>
+                              <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-4 ring-blue-50 animate-pulse"></div>
                               <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-slate-200"></div>
                            </div>
 
@@ -342,7 +408,7 @@ export const LandingPage: React.FC = () => {
                      </div>
 
                      {/* Overlay Widget (Total Savings) */}
-                     <div className="absolute bottom-6 right-6 bg-[#0B1120] text-white p-5 rounded-2xl shadow-2xl max-w-[200px] animate-[float_5s_ease-in-out_infinite_1s] border border-white/10 z-20">
+                     <div className="absolute bottom-6 right-6 bg-[#0B1120] text-white p-5 rounded-2xl shadow-2xl max-w-[200px] animate-[float_5s_ease-in-out_infinite_1s] border border-white/10 z-20 hover:scale-105 transition-transform cursor-pointer">
                         <div className="flex justify-between items-center mb-3">
                            <span className="text-xs text-slate-400 font-medium">Savings</span>
                            <ArrowRight className="text-brand-orange -rotate-45" size={16}/>
@@ -357,15 +423,15 @@ export const LandingPage: React.FC = () => {
       </div>
       
        {/* Nationwide Coverage Section (Maps) - REDESIGNED LIGHT */}
-      <div className="py-24 bg-white relative overflow-hidden">
+      <div className="py-24 bg-white relative overflow-hidden map-section">
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="flex flex-col lg:flex-row items-center gap-16 reveal-section">
+            <div className="flex flex-col lg:flex-row items-center gap-16">
                 
                 {/* Map Visualization - Light Theme */}
-                <div className="w-full lg:w-3/5 relative h-[500px] lg:h-[600px] bg-slate-100 rounded-[3rem] overflow-hidden shadow-2xl border border-slate-200 group">
+                <div className="w-full lg:w-3/5 relative h-[500px] lg:h-[600px] bg-slate-100 rounded-[3rem] overflow-hidden shadow-2xl border border-slate-200 group map-container">
                     
                     {/* Map Background Image (Light) */}
-                    <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover opacity-20 mix-blend-multiply"></div>
+                    <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover opacity-20 mix-blend-multiply transition-transform duration-[20s] ease-linear group-hover:scale-110"></div>
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-blue-50/40"></div>
 
                     {/* Central Hub Pulse (Orange) */}
@@ -392,22 +458,22 @@ export const LandingPage: React.FC = () => {
                     </svg>
 
                     {/* Floating Location Nodes - Light Theme */}
-                    <div className="absolute top-1/4 right-1/4 animate-[bounce_3s_infinite]">
-                         <div className="bg-white border border-slate-100 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+                    <div className="absolute top-1/4 right-1/4 animate-[bounce_3s_infinite] hover:pause">
+                         <div className="bg-white border border-slate-100 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 cursor-pointer hover:scale-110 transition-transform">
                             <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
                             <span className="text-xs font-bold text-slate-700">Kano Hub</span>
                         </div>
                     </div>
 
-                    <div className="absolute bottom-1/3 left-1/4 animate-[bounce_4s_infinite]">
-                         <div className="bg-white border border-slate-100 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+                    <div className="absolute bottom-1/3 left-1/4 animate-[bounce_4s_infinite] hover:pause">
+                         <div className="bg-white border border-slate-100 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 cursor-pointer hover:scale-110 transition-transform">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                             <span className="text-xs font-bold text-slate-700">Lagos Port</span>
                         </div>
                     </div>
 
                     {/* Live Tracking Card - Light Glass */}
-                    <div className="absolute bottom-8 right-8 bg-white/80 backdrop-blur-xl border border-white/50 p-5 rounded-2xl shadow-xl w-64">
+                    <div className="absolute bottom-8 right-8 bg-white/80 backdrop-blur-xl border border-white/50 p-5 rounded-2xl shadow-xl w-64 hover:-translate-y-2 transition-transform duration-300">
                         <div className="flex justify-between items-center mb-3">
                             <h4 className="text-sm font-bold flex items-center gap-2 text-slate-900">
                                 <Truck size={14} className="text-brand-orange"/> Live Fleet
@@ -448,8 +514,8 @@ export const LandingPage: React.FC = () => {
                             { title: 'Optimized Routing', desc: 'AI-driven route planning reduces transit time.', icon: Navigation },
                             { title: 'Secure Checkpoints', desc: 'Verified stops and secure hubs.', icon: ShieldCheck }
                         ].map((feature, i) => (
-                            <div key={i} className="flex gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-brand-primary shrink-0">
+                            <div key={i} className="flex gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 cursor-default group">
+                                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-brand-primary shrink-0 group-hover:scale-110 transition-transform">
                                     <feature.icon size={22}/>
                                 </div>
                                 <div>
