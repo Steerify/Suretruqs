@@ -53,17 +53,19 @@ export const LandingPage: React.FC = () => {
         ease: "power3.out"
       }, "-=0.6");
 
-      // 2. Services Stagger
+      // 2. Services Stagger - Optimized to prevent blur
       gsap.from(".service-card", {
         scrollTrigger: {
           trigger: "#services",
           start: "top 70%",
         },
-        y: 100,
+        y: 30,
         opacity: 0,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "power2.out"
+        duration: 0.6,
+        stagger: 0.15,
+        ease: "power2.out",
+        force3D: true,
+        clearProps: "all"
       });
 
       // 3. Features Section Split
@@ -246,10 +248,10 @@ export const LandingPage: React.FC = () => {
                   { title: 'Corporate Fleets', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated business logistics.' }
                ].map((service, idx) => (
                   <div key={idx} className="service-card group relative rounded-[2.5rem] overflow-hidden h-[450px] cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500">
-                     <img src={service.img} alt={service.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
+                     <img src={service.img} alt={service.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-115" />
+                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-slate-900/10 to-transparent opacity-60 group-hover:opacity-70 transition-opacity"></div>
                      <div className="absolute top-8 left-8">
-                        <div className={`w-12 h-12 ${service.color} rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm group-hover:rotate-12 transition-transform duration-300`}>
+                        <div className={`w-12 h-12 ${service.color} rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform duration-300`}>
                             <service.icon size={24} />
                         </div>
                      </div>

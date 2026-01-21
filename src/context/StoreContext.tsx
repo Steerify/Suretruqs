@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { UserRole, Shipment, User, ShipmentStatus, Driver } from '../types';
+import { UserRole, Shipment, User, ShipmentStatus, Driver, ChatMessage } from '../types';
 
 // Mock Initial Data
 const INITIAL_SHIPMENTS: Shipment[] = [
@@ -44,7 +44,9 @@ interface StoreContextType {
   shipments: Shipment[];
   drivers: Driver[];
   incomingJob: Shipment | null;
-  
+  messages: Record<string, ChatMessage[]>;
+  isTyping: Record<string, boolean>; // shipmentId -> boolean
+
   // Actions
   login: (role: UserRole, isSignup: boolean) => void;
   logout: () => void;
@@ -55,6 +57,7 @@ interface StoreContextType {
   rateDriver: (shipmentId: string, rating: number, review: string) => void;
   dismissJobAlert: () => void;
   setIncomingJob: (job: Shipment | null) => void;
+  sendMessage: (shipmentId: string, text: string) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -64,6 +67,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [shipments, setShipments] = useState<Shipment[]>(INITIAL_SHIPMENTS);
   const [drivers, setDrivers] = useState<Driver[]>(INITIAL_DRIVERS);
   const [incomingJob, setIncomingJob] = useState<Shipment | null>(null);
+  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
+  const [isTyping, setIsTyping] = useState<Record<string, boolean>>({});
 
   const login = (role: UserRole, isSignup: boolean) => {
     const mockUser: User = {
@@ -141,12 +146,65 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setIncomingJob(null);
   };
 
+  const sendMessage = (shipmentId: string, text: string) => {
+      if (!currentUser) return;
+
+      const newMessage: ChatMessage = {
+          id: Date.now().toString(),
+          senderId: currentUser.id,
+          shipmentId,
+          text,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isMe: true
+      };
+
+      setMessages(prev => ({
+          ...prev,
+          [shipmentId]: [...(prev[shipmentId] || []), newMessage]
+      }));
+
+      // Simulate Reply
+      setTimeout(() => {
+          setIsTyping(prev => ({ ...prev, [shipmentId]: true }));
+          
+          setTimeout(() => {
+               setIsTyping(prev => ({ ...prev, [shipmentId]: false }));
+               
+               const replies = [
+                   "Okay, noted.",
+                   "I'm on my way.",
+                   "Can you clarify the location?",
+                   "Thank you!",
+                   "Please wait a moment."
+               ];
+               const randomReply = replies[Math.floor(Math.random() * replies.length)];
+
+               const replyMsg: ChatMessage = {
+                   id: (Date.now() + 1).toString(),
+                   senderId: 'OTHER_USER',
+                   shipmentId,
+                   text: randomReply,
+                   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                   isMe: false
+               };
+
+               setMessages(prev => ({
+                   ...prev,
+                   [shipmentId]: [...(prev[shipmentId] || []), replyMsg]
+               }));
+
+          }, 1500 + Math.random() * 1000); // Random typing delay
+      }, 500);
+  };
+
   return (
     <StoreContext.Provider value={{
       currentUser,
       shipments,
       drivers,
       incomingJob,
+      messages,
+      isTyping,
       login,
       logout,
       completeOnboarding,
@@ -156,6 +214,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       rateDriver,
       dismissJobAlert,
       setIncomingJob,
+      sendMessage
     }}>
       {children}
     </StoreContext.Provider>

@@ -80,3 +80,12 @@ export interface DriverStats {
   vehiclePlate?: string;
   vehicleModel?: string;
 }
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  shipmentId: string;
+  text: string;
+  timestamp: string;
+  isMe: boolean; // Helper for UI
+}

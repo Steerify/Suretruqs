@@ -179,7 +179,7 @@ export const DriverDashboard: React.FC = () => {
          {selectedHistoryItem && <DriverJobDetailsModal job={selectedHistoryItem} onClose={() => setSelectedHistoryItem(null)} />}
          {viewingDoc && <DocumentModal viewingDoc={viewingDoc} onClose={() => setViewingDoc(null)} />}
          {showBankModal && <BankDetailsModal onClose={() => setShowBankModal(false)} onSave={handleBankSave} userName={user.name} />}
-         {showCustomerChat && <CustomerChatModal messages={customerMessages} onClose={() => setShowCustomerChat(false)} onSendMessage={handleCustomerSendMessage} isTyping={customerTyping} />}
+         {showCustomerChat && activeJob && <CustomerChatModal shipmentId={activeJob.id} onClose={() => setShowCustomerChat(false)} />}
          {showSOS && <SOSModal onClose={() => setShowSOS(false)} />}
 
          {view === 'home' && (
