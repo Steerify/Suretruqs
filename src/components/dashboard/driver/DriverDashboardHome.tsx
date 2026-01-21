@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Wallet, Filter, ChevronDown, Package, Clock, Star } from 'lucide-react';
+import { Wallet, Filter, ChevronDown, Package, Clock, Star, Zap, MapPin, ShieldCheck, PieChart } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { Shipment, User } from '../../../types';
+import { WeeklyEarningsChart } from './WeeklyEarningsChart';
+import { VehicleHealthCard } from './VehicleHealthCard';
 
 interface DriverDashboardHomeProps {
     user: User;
@@ -27,7 +29,7 @@ export const DriverDashboardHome = ({ user, availableJobs, onAcceptJob, setView 
     });
 
     return (
-        <div className="p-4 md:p-8 pb-24 fade-up w-full max-w-[1920px] mx-auto">
+        <div className="p-4 md:p-8 pb-32 fade-up w-full max-w-[1920px] mx-auto">
            <div className="flex justify-between items-center mb-10">
               <div>
                  <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
@@ -37,7 +39,40 @@ export const DriverDashboardHome = ({ user, availableJobs, onAcceptJob, setView 
 
            <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
                <div className="lg:col-span-3 space-y-10">
-                   {/* Earnings Card */}
+                  
+                   {/* Top Stats Row */}
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+                       <WeeklyEarningsChart />
+                       <VehicleHealthCard />
+                   </div>
+
+                   {/* Quick Actions */}
+                   <div>
+                        <h3 className="font-bold text-xl text-slate-900 mb-6 flex items-center gap-2">
+                            <Zap size={20} className="text-brand-orange" /> Quick Actions
+                        </h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[
+                                { label: 'Get Help', icon: ShieldCheck, color: 'bg-blue-50 text-brand-primary', action: () => setView('support') },
+                                { label: 'Vehicle Service', icon: PieChart, color: 'bg-slate-50 text-slate-600', action: () => setView('maintenance') },
+                                { label: 'Find Hubs', icon: MapPin, color: 'bg-orange-50 text-brand-orange' },
+                                { label: 'Payout History', icon: Wallet, color: 'bg-green-50 text-green-600', action: () => setView('wallet') },
+                            ].map((action, i) => (
+                                <button 
+                                    key={i} 
+                                    onClick={action.action}
+                                    className="flex flex-col items-center gap-3 p-6 bg-white border border-slate-100 rounded-3xl shadow-sm hover:shadow-md hover:border-brand-primary/20 transition-all group"
+                                >
+                                    <div className={`p-3 ${action.color} rounded-2xl group-hover:scale-110 transition-transform`}>
+                                        <action.icon size={24} />
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-700 whitespace-nowrap">{action.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                   </div>
+
+                   {/* Earnings Card (Legacy - kept for consistency but refined) */}
                    <div className="bg-white border border-slate-200 rounded-3xl p-8 relative overflow-hidden shadow-lg group hover:shadow-xl transition-all">
                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl translate-x-10 -translate-y-10"></div>
                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-50/50 rounded-full blur-3xl -translate-x-10 translate-y-10"></div>
@@ -52,8 +87,8 @@ export const DriverDashboardHome = ({ user, availableJobs, onAcceptJob, setView 
                                <p className="text-slate-500 text-sm font-medium">Last payout: <span className="text-slate-900 font-bold">2 days ago</span></p>
                            </div>
                            <div className="flex gap-3 w-full md:w-auto">
-                               <Button className="bg-brand-primary hover:bg-blue-800 text-white border-none py-3 px-6 shadow-lg shadow-blue-500/20 rounded-xl font-bold" onClick={() => setView('wallet')}>Cash Out</Button>
-                               <Button variant="secondary" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 py-3 px-6 rounded-xl" onClick={() => setView('wallet')}>History</Button>
+                               <Button className="bg-brand-primary hover:bg-blue-800 text-white border-none py-3 px-6 shadow-lg shadow-blue-500/20 rounded-xl font-bold" onClick={() => setView('wallet')}>Cash Out Now</Button>
+                               <Button variant="secondary" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 py-3 px-6 rounded-xl" onClick={() => setView('wallet')}>View History</Button>
                            </div>
                        </div>
                    </div>
@@ -197,6 +232,44 @@ export const DriverDashboardHome = ({ user, availableJobs, onAcceptJob, setView 
                                <span className="font-bold text-slate-900">98%</span>
                            </div>
                        </div>
+                    </div>
+
+                    {/* Pro Tip Card */}
+                    <div className="bg-gradient-to-br from-brand-primary to-blue-700 p-6 rounded-3xl text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group">
+                        <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
+                        <Zap className="mb-4 text-orange-400" size={24} />
+                        <h4 className="font-bold text-lg mb-2">Pro Tip</h4>
+                        <p className="text-blue-100 text-sm leading-relaxed mb-6">Drivers who maintain a 95%+ completion rate earn 20% more in weekly bonuses.</p>
+                        <button className="text-xs font-bold bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors border border-white/10">Learn More</button>
+                    </div>
+
+                    {/* Nearby Hubs Mock (Quick view) */}
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                        <h4 className="font-bold text-slate-900 mb-6 flex justify-between items-center">
+                            Nearby Hubs
+                            <span className="text-[10px] text-brand-primary cursor-pointer hover:underline">View Map</span>
+                        </h4>
+                        <div className="space-y-4">
+                            {[
+                                { name: 'Apapa Port Hub', dist: '1.2 km', load: 'Busy' },
+                                { name: 'Ikeja Transit', dist: '4.5 km', load: 'Quiet' },
+                                { name: 'Lekki Annex', dist: '12 km', load: 'Moderate' },
+                            ].map((hub, i) => (
+                                <div key={i} className="flex justify-between items-center">
+                                    <div>
+                                        <p className="text-xs font-bold text-slate-900">{hub.name}</p>
+                                        <p className="text-[10px] text-slate-400">{hub.dist}</p>
+                                    </div>
+                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${
+                                        hub.load === 'Busy' ? 'bg-red-50 text-red-600' : 
+                                        hub.load === 'Quiet' ? 'bg-green-50 text-green-600' : 
+                                        'bg-blue-50 text-blue-600'
+                                    }`}>
+                                        {hub.load}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                </div>
            </div>

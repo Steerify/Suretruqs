@@ -104,18 +104,8 @@ export const LandingPage: React.FC = () => {
         ease: "power3.out"
       });
 
-       // 5. Why Choose Us Items
-       gsap.from(".feature-item", {
-        scrollTrigger: {
-          trigger: ".feature-list",
-          start: "top 80%",
-        },
-        y: 20,
-        opacity: 0,
-        duration: 0.6,
-        stagger: 0.15,
-        ease: "power1.out"
-      });
+       // 5. Why Choose Us Items - Consolidated with feature-left for reliability
+
 
     }, containerRef);
     return () => ctx.revert();
@@ -179,7 +169,7 @@ export const LandingPage: React.FC = () => {
             
             <div className="flex flex-col sm:flex-row gap-6 items-start max-w-2xl overflow-hidden mb-12">
                <p className="text-slate-100 text-lg md:text-xl leading-relaxed font-light drop-shadow-sm hero-sub">
-                  Whether you're traveling for business, leisure, or a special occasion, our logistics network ensures your cargo arrives safely and on time.
+                  Whether you're shipping for business, industrial projects, or seasonal demands, our logistics network ensures your cargo arrives safely and on time.
                </p>
             </div>
 
@@ -236,16 +226,16 @@ export const LandingPage: React.FC = () => {
          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-end mb-16">
                <div className="reveal-section">
-                  <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase tracking-tight">Our Services</h2>
+                  <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase tracking-tight">Our Logistics Services</h2>
                   <p className="text-slate-500 mt-4 max-w-md text-lg">Comprehensive logistics solutions tailored for speed, safety, and reliability.</p>
                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                {[
-                  { title: 'Inter-State Haulage', img: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=800&q=80', icon: Truck, color: 'bg-blue-100 text-blue-600', desc: 'Long-distance heavy freight.' },
-                  { title: 'Last-Mile Delivery', img: 'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?auto=format&fit=crop&w=800&q=80', icon: Package, color: 'bg-orange-100 text-orange-600', desc: 'Fast local deliveries.' },
-                  { title: 'Corporate Fleets', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated business logistics.' }
+                  { title: 'Inter-State Haulage', img: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=800&q=80', icon: Truck, color: 'bg-blue-100 text-blue-600', desc: 'Reliable long-distance heavy freight hauling across borders.' },
+                  { title: 'Last-Mile Delivery', img: 'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?auto=format&fit=crop&w=800&q=80', icon: Package, color: 'bg-orange-100 text-orange-600', desc: 'Fast and secure local last-mile deliveries for your customers.' },
+                  { title: 'Corporate Fleets', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated logistics management and corporate fleet solutions.' }
                ].map((service, idx) => (
                   <div key={idx} className="service-card group relative rounded-[2.5rem] overflow-hidden h-[450px] cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500">
                      <img src={service.img} alt={service.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-115" />
@@ -281,7 +271,7 @@ export const LandingPage: React.FC = () => {
                      Why Choose Us
                   </div>
                   <h2 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] mb-8">
-                     Logistics Simplified <br/> For <span className="text-brand-orange">Growth.</span>
+                     Logistics Simplified. <br/> Powering Your <span className="text-brand-orange">Growth.</span>
                   </h2>
                   <p className="text-slate-600 text-lg mb-10 max-w-lg leading-relaxed">
                      We leverage technology to streamline your supply chain. From verified drivers to real-time tracking, we provide the tools you need to scale.
@@ -389,11 +379,27 @@ export const LandingPage: React.FC = () => {
                            <div className="relative flex justify-between mb-6 px-1">
                               <div className="absolute top-1 left-0 w-full h-0.5 bg-slate-100 -z-10"></div>
                               <div className="absolute top-1 left-0 w-3/4 h-0.5 bg-brand-secondary -z-10"></div>
-                              <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-2 ring-white"></div>
-                              <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-2 ring-white"></div>
-                              <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-2 ring-white"></div>
-                              <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-4 ring-blue-50 animate-pulse"></div>
-                              <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-slate-200"></div>
+                              
+                              <div className="flex flex-col items-center gap-2">
+                                 <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-2 ring-white"></div>
+                                 <span className="text-[8px] text-slate-400 font-bold uppercase">Order</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-2">
+                                 <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-2 ring-white"></div>
+                                 <span className="text-[8px] text-slate-400 font-bold uppercase">Pickup</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-2">
+                                 <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-2 ring-white"></div>
+                                 <span className="text-[8px] text-slate-400 font-bold uppercase">Transit</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-2">
+                                 <div className="w-2.5 h-2.5 rounded-full bg-brand-secondary ring-4 ring-blue-50 animate-pulse"></div>
+                                 <span className="text-[8px] text-brand-secondary font-bold uppercase">Arriving</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-2">
+                                 <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-slate-200"></div>
+                                 <span className="text-[8px] text-slate-400 font-bold uppercase">Done</span>
+                              </div>
                            </div>
 
                            <div className="flex justify-between items-end">
