@@ -33,7 +33,7 @@ const InputField = ({
 );
 
 export const AuthView: React.FC = () => {
-  const { login } = useStore();
+  const { login, signup } = useStore();
   const navigate = useNavigate(); 
   const onBack = () => navigate('/');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -99,17 +99,28 @@ export const AuthView: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate network delay
-    setTimeout(() => {
-      if (selectedRole) {
-        login(selectedRole, authMode === 'SIGNUP');
+    try {
+      if (authMode === 'LOGIN') {
+        await login(formData.email, formData.password);
+      } else {
+        await signup({
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          role: selectedRole,
+          phone: formData.phone
+        });
       }
+      // Navigation is handled by App.tsx redirects based on currentUser state
+    } catch (err: any) {
+      alert(err.message || "Authentication failed. Please check your credentials.");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (

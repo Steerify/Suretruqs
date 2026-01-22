@@ -3,15 +3,11 @@ import { Download, Plus, ArrowUpRight, Wallet, CreditCard, CheckCircle2, Trash2,
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Transaction } from '../../../types';
-import { PaymentMethod } from './AddCardModal'; // We can share the interface, or move it to types.ts. For now importing it.
+import { useStore } from '../../../context/StoreContext';
+import { loadPaystackScript, initializePaystack } from '../../../utils/paystack';
+import { PaymentMethod } from './AddCardModal';
 
-// Mock Transactions
-const MOCK_TRANSACTIONS: Transaction[] = [
-  { id: 'TX-001', type: 'DEBIT', amount: 45000, date: '2023-10-25', description: 'Shipment Payment #TRK-8821', status: 'SUCCESS', reference: 'PAY-8821' },
-  { id: 'TX-002', type: 'CREDIT', amount: 100000, date: '2023-10-20', description: 'Wallet Top-up (Paystack)', status: 'SUCCESS', reference: 'TOP-9912' },
-  { id: 'TX-003', type: 'DEBIT', amount: 22500, date: '2023-10-18', description: 'Shipment Payment #TRK-7712', status: 'SUCCESS', reference: 'PAY-7712' },
-  { id: 'TX-004', type: 'DEBIT', amount: 15000, date: '2023-10-15', description: 'Shipment Payment #TRK-1123', status: 'FAILED', reference: 'PAY-1123' },
-];
+// MOCK_TRANSACTIONS removed, using store data
 
 interface WalletViewProps {
     paymentMethods: PaymentMethod[];
@@ -19,7 +15,47 @@ interface WalletViewProps {
     handleRemoveCard: (id: string) => void;
 }
 
-export const WalletView = ({ paymentMethods, setShowAddCardModal, handleRemoveCard }: WalletViewProps) => (
+export const WalletView = ({ paymentMethods, setShowAddCardModal, handleRemoveCard }: WalletViewProps) => {
+    const { walletBalance, transactions, topUpWallet, verifyWalletDeposit, currentUser, fetchWalletData } = useStore();
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handleTopUp = async () => {
+        const amountStr = prompt("Enter amount to top up (NGN):", "5000");
+        if (!amountStr) return;
+        const amount = parseFloat(amountStr);
+        if (isNaN(amount) || amount <= 0) return alert("Invalid amount");
+
+        setIsProcessing(true);
+        try {
+            const isLoaded = await loadPaystackScript();
+            if (!isLoaded) throw new Error("Could not load Paystack");
+
+            const initiateData = await topUpWallet(amount);
+            
+            initializePaystack({
+                email: currentUser?.email,
+                amount: amount,
+                reference: initiateData.reference,
+                callback: async (response: any) => {
+                    try {
+                        await verifyWalletDeposit(response.reference, amount);
+                        alert("Wallet topped up successfully!");
+                    } catch (err) {
+                        console.error("Verification error:", err);
+                        alert("Payment verification pending.");
+                    }
+                },
+                onClose: () => {
+                    setIsProcessing(false);
+                }
+            });
+        } catch (err: any) {
+            alert(err.message || "Failed to initiate payment");
+            setIsProcessing(false);
+        }
+    };
+
+    return (
     <div className="fade-in w-full">
       {/* Header / Title - Left Aligned */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
@@ -44,7 +80,7 @@ export const WalletView = ({ paymentMethods, setShowAddCardModal, handleRemoveCa
                     <div>
                         <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-1">Total Balance</p>
                         <h1 className="text-5xl md:text-6xl font-black tracking-tighter">
-                           ₦85,000<span className="text-2xl text-slate-500 font-medium">.00</span>
+                           ₦{walletBalance.toLocaleString()}<span className="text-2xl text-slate-500 font-medium">.00</span>
                         </h1>
                     </div>
                     <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
@@ -53,8 +89,12 @@ export const WalletView = ({ paymentMethods, setShowAddCardModal, handleRemoveCa
                 </div>
                 
                 <div className="flex flex-wrap gap-4 mt-auto">
-                   <Button className="bg-brand-orange hover:bg-orange-600 text-white border-none py-3 px-6 rounded-xl shadow-lg shadow-orange-900/20 font-bold flex items-center">
-                      <Plus size={18} className="mr-2"/> Top Up Wallet
+                   <Button 
+                        onClick={handleTopUp} 
+                        disabled={isProcessing}
+                        className="bg-brand-orange hover:bg-orange-600 text-white border-none py-3 px-6 rounded-xl shadow-lg shadow-orange-900/20 font-bold flex items-center"
+                   >
+                      <Plus size={18} className="mr-2"/> {isProcessing ? 'Processing...' : 'Top Up Wallet'}
                    </Button>
                    <Button variant="secondary" className="bg-white/10 border-white/10 text-white hover:bg-white/20 py-3 px-6 rounded-xl backdrop-blur-md font-bold flex items-center">
                       <ArrowUpRight size={18} className="mr-2"/> Withdraw Funds
@@ -65,41 +105,82 @@ export const WalletView = ({ paymentMethods, setShowAddCardModal, handleRemoveCa
 
           {/* Payment Methods / Quick Card - 1 Column */}
           <div className="space-y-6">
-             <Card className="border border-slate-200 shadow-sm p-6 rounded-3xl h-full flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-slate-900 text-lg">Payment Methods</h3>
-                    <button onClick={() => setShowAddCardModal(true)} className="text-brand-secondary hover:bg-blue-50 p-2 rounded-full transition-colors"><Plus size={20}/></button>
-                </div>
-                
-                <div className="space-y-4 flex-1 overflow-y-auto max-h-[300px] pr-1">
-                   {paymentMethods.length > 0 ? paymentMethods.map((pm) => (
-                       <div key={pm.id} className="p-4 border border-slate-100 bg-white rounded-2xl flex items-center justify-between group hover:bg-slate-50 transition-colors relative">
-                          <div className="flex items-center gap-3">
-                             <div className="w-10 h-7 bg-slate-100 border border-slate-200 rounded flex items-center justify-center">
-                                 <span className="text-[8px] font-bold text-slate-500">{pm.type}</span>
-                             </div>
-                             <div>
-                                <p className="font-bold text-slate-900 text-sm">•••• {pm.last4}</p>
-                                <p className="text-[10px] text-slate-500 font-bold uppercase">Expires {pm.expiry}</p>
-                             </div>
-                          </div>
-                          {pm.isDefault ? (
-                              <CheckCircle2 size={16} className="text-brand-primary"/>
-                          ) : (
-                              <button onClick={() => handleRemoveCard(pm.id)} className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                                  <Trash2 size={16} />
-                              </button>
-                          )}
-                       </div>
-                   )) : (
-                       <div className="text-center py-8 text-slate-400">
-                           <CreditCard size={32} className="mx-auto mb-2 opacity-50"/>
-                           <p className="text-sm">No cards added</p>
-                       </div>
-                   )}
-                </div>
-             </Card>
-          </div>
+            <Card className="rounded-3xl border border-slate-100 bg-white shadow-sm h-full flex flex-col">
+               
+               {/* Header */}
+               <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                     <div>
+                        <h3 className="text-base font-semibold text-slate-900">
+                           Payment methods
+                        </h3>
+                        <p className="text-xs text-slate-500">
+                           Manage your saved cards
+                        </p>
+                     </div>
+
+                     <button
+                        onClick={() => setShowAddCardModal(true)}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-secondary hover:text-brand-primary transition-colors"
+                     >
+                        <Plus size={16} />
+                        Add
+                     </button>
+               </div>
+
+               {/* Content */}
+               <div className="flex-1 overflow-y-auto max-h-[320px] px-6 py-4 space-y-3">
+                     {paymentMethods.length > 0 ? (
+                        paymentMethods.map(pm => (
+                           <div
+                                 key={pm.id}
+                                 className="group flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 hover:bg-slate-100 transition-colors"
+                           >
+                                 <div className="flex items-center gap-4">
+                                    
+                                    {/* Card type */}
+                                    <div className="w-11 h-8 rounded-md bg-white border border-slate-200 flex items-center justify-center">
+                                       <span className="text-[9px] font-semibold text-slate-500 uppercase">
+                                             {pm.type}
+                                       </span>
+                                    </div>
+
+                                    {/* Card info */}
+                                    <div className="leading-tight">
+                                       <p className="text-sm font-semibold text-slate-900">
+                                             •••• {pm.last4}
+                                       </p>
+                                       <p className="text-[11px] text-slate-500">
+                                             Expires {pm.expiry}
+                                       </p>
+                                    </div>
+                                 </div>
+
+                                 {/* Actions */}
+                                 {pm.isDefault ? (
+                                    <span className="text-[11px] font-semibold text-brand-primary bg-blue-50 px-2.5 py-1 rounded-full">
+                                       Default
+                                    </span>
+                                 ) : (
+                                    <button
+                                       onClick={() => handleRemoveCard(pm.id)}
+                                       className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all"
+                                    >
+                                       <Trash2 size={16} />
+                                    </button>
+                                 )}
+                           </div>
+                        ))
+                     ) : (
+                        <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                           <CreditCard size={28} className="mb-3 opacity-40" />
+                           <p className="text-sm">No payment methods yet</p>
+                           <p className="text-xs mt-1">Add a card to get started</p>
+                        </div>
+                     )}
+               </div>
+            </Card>
+         </div>
+
       </div>
   
       {/* Recent Transactions */}
@@ -113,7 +194,7 @@ export const WalletView = ({ paymentMethods, setShowAddCardModal, handleRemoveCa
             </div>
          </div>
          <div className="space-y-1">
-            {MOCK_TRANSACTIONS.map((tx) => (
+            {transactions.length > 0 ? transactions.slice(0, 10).map((tx) => (
                <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-2xl transition-colors group cursor-default border-b border-slate-50 last:border-0">
                   <div className="flex items-center gap-4">
                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
@@ -123,7 +204,7 @@ export const WalletView = ({ paymentMethods, setShowAddCardModal, handleRemoveCa
                      </div>
                      <div>
                         <p className="font-bold text-slate-900 text-sm">{tx.description}</p>
-                        <p className="text-xs text-slate-500 mt-0.5 font-medium">{tx.date} • <span className="font-mono">{tx.reference}</span></p>
+                        <p className="text-xs text-slate-500 mt-0.5 font-medium">{new Date(tx.date).toLocaleDateString()} • <span className="font-mono">{tx.reference}</span></p>
                      </div>
                   </div>
                   <div className="text-right">
@@ -135,7 +216,9 @@ export const WalletView = ({ paymentMethods, setShowAddCardModal, handleRemoveCa
                       <span className={`text-[10px] font-bold uppercase ${tx.status === 'SUCCESS' ? 'text-green-600' : 'text-red-500'}`}>{tx.status}</span>
                   </div>
                </div>
-            ))}
+            )) : (
+                <div className="py-8 text-center text-slate-400">No transactions found.</div>
+            )}
          </div>
          <div className="mt-4 pt-4 border-t border-slate-100 text-center">
              <button className="text-brand-primary text-sm font-bold hover:underline">View All History</button>
@@ -156,4 +239,5 @@ export const WalletView = ({ paymentMethods, setShowAddCardModal, handleRemoveCa
            <button className="text-xs font-bold text-slate-500 hover:text-slate-800">Learn more</button>
       </div>
     </div>
-);
+    );
+};

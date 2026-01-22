@@ -31,16 +31,26 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/" element={
-           currentUser ? <Navigate to={`/dashboard/${currentUser.role === UserRole.CUSTOMER ? 'customer' : 'driver'}`} /> : <LandingPage />
+           currentUser 
+             ? (currentUser.onboarded 
+                 ? <Navigate to={`/dashboard/${currentUser.role === UserRole.CUSTOMER ? 'customer' : 'driver'}`} /> 
+                 : <Navigate to="/onboarding" replace />)
+             : <LandingPage />
         } />
         <Route path="/contact" element={<ContactView />} />
         <Route path="/auth" element={
-           currentUser ? <Navigate to={`/dashboard/${currentUser.role === UserRole.CUSTOMER ? 'customer' : 'driver'}`} /> : <AuthView />
+           currentUser 
+             ? (currentUser.onboarded 
+                 ? <Navigate to={`/dashboard/${currentUser.role === UserRole.CUSTOMER ? 'customer' : 'driver'}`} /> 
+                 : <Navigate to="/onboarding" replace />)
+             : <AuthView />
         } />
         
         <Route path="/onboarding" element={
           <ProtectedRoute>
-             <OnboardingView user={currentUser!} />
+             {currentUser?.onboarded 
+               ? <Navigate to={`/dashboard/${currentUser.role === UserRole.CUSTOMER ? 'customer' : 'driver'}`} replace /> 
+               : <OnboardingView />}
           </ProtectedRoute>
         } />
 

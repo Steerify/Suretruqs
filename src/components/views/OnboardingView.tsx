@@ -15,6 +15,7 @@ export const OnboardingView: React.FC = () => {
   // Form State for User Input (Mocking real form handling)
   const [formData, setFormData] = useState({
       address: '',
+      phone: '',
       nin: '',
       vehicleMake: '',
       vehicleModel: '',
@@ -50,11 +51,23 @@ export const OnboardingView: React.FC = () => {
       setStep(step + 1);
     } else {
       setLoading(true);
-      // Simulate API call and state update
-      setTimeout(() => {
-        completeOnboarding();
-        navigate('/dashboard');
-      }, 1500);
+      try {
+        await completeOnboarding({
+          ...formData,
+          phone: formData.phone,
+          company: !isDriver ? formData.businessType : undefined,
+          vehicleType: isDriver ? formData.vehicleMake : undefined,
+          plateNumber: isDriver ? formData.plateNumber : undefined,
+          vehicleModel: isDriver ? formData.vehicleModel : undefined,
+          location: { address: formData.address, lat: 0, lng: 0 }
+        });
+        
+        navigate(`/dashboard/${isDriver ? 'driver' : 'customer'}`);
+      } catch (err) {
+        alert("Something went wrong during onboarding. Please try again.");
+      } finally {
+        setLoading(true); // Keep loading true during transition
+      }
     }
   };
 
@@ -200,17 +213,30 @@ export const OnboardingView: React.FC = () => {
                               </div>
                             </div>
                             <div className="md:col-span-2">
-                              <label className="block text-sm font-bold text-slate-700 mb-1.5">Home Address</label>
-                              <div className="relative">
-                                <MapPin size={18} className="absolute left-3 top-3 text-slate-400"/>
-                                <input 
-                                    type="text" 
-                                    placeholder="Full residential address" 
-                                    className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all" 
-                                    value={formData.address}
-                                    onChange={(e) => updateForm('address', e.target.value)}
-                                />
-                              </div>
+                               <label className="block text-sm font-bold text-slate-700 mb-1.5">Phone Number</label>
+                               <div className="relative">
+                                 <FileText size={18} className="absolute left-3 top-3 text-slate-400"/>
+                                 <input 
+                                     type="tel" 
+                                     placeholder="+234 800 000 0000" 
+                                     className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all" 
+                                     value={formData.phone}
+                                     onChange={(e) => updateForm('phone', e.target.value)}
+                                 />
+                               </div>
+                            </div>
+                            <div className="md:col-span-2">
+                               <label className="block text-sm font-bold text-slate-700 mb-1.5">Home Address</label>
+                               <div className="relative">
+                                 <MapPin size={18} className="absolute left-3 top-3 text-slate-400"/>
+                                 <input 
+                                     type="text" 
+                                     placeholder="Full residential address" 
+                                     className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all" 
+                                     value={formData.address}
+                                     onChange={(e) => updateForm('address', e.target.value)}
+                                 />
+                               </div>
                             </div>
                           </div>
                         </div>
@@ -350,6 +376,19 @@ export const OnboardingView: React.FC = () => {
                                  />
                                </div>
                             </div>
+                             <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Phone Number</label>
+                                <div className="relative">
+                                  <FileText size={18} className="absolute left-3 top-3 text-slate-400"/>
+                                  <input 
+                                     type="tel" 
+                                     placeholder="+234 810 222 3333" 
+                                     className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all" 
+                                     value={formData.phone}
+                                     onChange={(e) => updateForm('phone', e.target.value)}
+                                  />
+                                </div>
+                             </div>
                          </div>
                       )}
                       

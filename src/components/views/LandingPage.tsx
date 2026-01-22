@@ -297,29 +297,29 @@ export const LandingPage: React.FC = () => {
                </div>
 
                {/* Right Side - Dashboard Mockup matching CustomerDashboard.tsx */}
-               <div className="w-full lg:w-1/2 relative feature-right pl-0 lg:pl-10">
-                  <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-200 h-[600px] border-[8px] border-white bg-slate-50 select-none hover:shadow-slate-300/50 transition-shadow duration-500">
-                     
-                     {/* Mock Top Bar */}
-                     <div className="bg-white/90 backdrop-blur-sm border-b border-slate-200 p-4 flex justify-between items-center sticky top-0 z-10">
-                        <div className="flex items-center gap-6">
-                           <div className="flex items-center gap-2">
-                              <div className="bg-brand-orange text-white p-1.5 rounded-lg">
-                                 <Package size={16} strokeWidth={3} />
-                              </div>
-                              <span className="font-bold text-slate-900 tracking-tight">SureTruqs<span className="text-brand-orange">.</span></span>
-                           </div>
-                           <div className="hidden md:flex bg-slate-100 rounded-full p-1 gap-1">
-                              <div className="bg-white text-brand-primary px-3 py-1 rounded-full text-[10px] font-bold shadow-sm">Dashboard</div>
-                              <div className="text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold">Wallet</div>
-                              <div className="text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold">History</div>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400"><Search size={14}/></div>
-                           <div className="w-8 h-8 rounded-full bg-blue-50 text-brand-primary flex items-center justify-center font-bold text-xs border border-blue-100">JD</div>
-                        </div>
-                     </div>
+                <div className="w-full lg:w-1/2 relative feature-right pl-0 lg:pl-10">
+                   <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-200 h-[450px] sm:h-[500px] lg:h-[600px] border-[8px] border-white bg-slate-50 select-none hover:shadow-slate-300/50 transition-shadow duration-500">
+                      
+                      {/* Mock Top Bar */}
+                      <div className="bg-white/90 backdrop-blur-sm border-b border-slate-200 p-3 sm:p-4 flex justify-between items-center sticky top-0 z-10">
+                         <div className="flex items-center gap-4 sm:gap-6">
+                            <div className="flex items-center gap-2">
+                               <div className="bg-brand-orange text-white p-1.5 rounded-lg">
+                                  <Package size={14} sm:size={16} strokeWidth={3} />
+                               </div>
+                               <span className="font-bold text-slate-900 tracking-tight text-sm sm:text-base">SureTruqs<span className="text-brand-orange">.</span></span>
+                            </div>
+                            <div className="hidden sm:flex bg-slate-100 rounded-full p-1 gap-1">
+                               <div className="bg-white text-brand-primary px-3 py-1 rounded-full text-[10px] font-bold shadow-sm">Dashboard</div>
+                               <div className="hidden lg:block text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold">Wallet</div>
+                               <div className="hidden lg:block text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold">History</div>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400"><Search size={12} sm:size={14}/></div>
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-50 text-brand-primary flex items-center justify-center font-bold text-[10px] sm:text-xs border border-blue-100">JD</div>
+                         </div>
+                      </div>
 
                      {/* Mock Dashboard Content */}
                      <div className="p-6 space-y-6">
@@ -334,36 +334,36 @@ export const LandingPage: React.FC = () => {
                            </button>
                         </div>
 
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-3 gap-4">
-                           <div className="col-span-1 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm relative overflow-hidden group">
-                              <div className="relative z-10">
-                                 <div className="flex items-center gap-2 mb-2">
-                                     <div className="p-1 bg-blue-50 text-brand-primary rounded">
-                                        <Wallet size={12} />
-                                     </div>
-                                     <p className="text-[10px] text-slate-500 font-bold uppercase">Wallet</p>
-                                 </div>
-                                 <p className="text-xl font-bold mb-3 text-slate-900">₦85,000</p>
-                                 <div className="bg-brand-primary text-white w-fit px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-lg shadow-blue-500/20">Top Up</div>
-                              </div>
-                              <div className="absolute -bottom-4 -right-4 bg-blue-50 w-16 h-16 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
-                           </div>
-                           <div className="col-span-1 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
-                              <div className="flex items-center gap-2 mb-2 text-slate-500">
-                                 <Package size={14} className="text-brand-orange"/>
-                                 <span className="text-[10px] font-bold uppercase">Shipments</span>
-                              </div>
-                              <p className="text-2xl font-bold text-slate-900">142</p>
-                           </div>
-                           <div className="col-span-1 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
-                              <div className="flex items-center gap-2 mb-2 text-slate-500">
-                                 <Truck size={14} className="text-green-600"/>
-                                 <span className="text-[10px] font-bold uppercase">Drivers</span>
-                              </div>
-                              <p className="text-2xl font-bold text-slate-900">12</p>
-                           </div>
-                        </div>
+                         {/* Stats Grid */}
+                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                            <div className="col-span-1 bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-sm relative overflow-hidden group">
+                               <div className="relative z-10">
+                                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+                                      <div className="p-1 bg-blue-50 text-brand-primary rounded">
+                                         <Wallet size={10} sm:size={12} />
+                                      </div>
+                                      <p className="text-[8px] sm:text-[10px] text-slate-500 font-bold uppercase">Wallet</p>
+                                  </div>
+                                  <p className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-slate-900">₦85,000</p>
+                                  <div className="bg-brand-primary text-white w-fit px-2.5 py-1 sm:py-1.5 rounded-lg text-[8px] sm:text-[10px] font-bold shadow-lg shadow-blue-500/20">Top Up</div>
+                               </div>
+                               <div className="absolute -bottom-4 -right-4 bg-blue-50 w-16 h-16 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
+                            </div>
+                            <div className="col-span-1 bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-sm">
+                               <div className="flex items-center gap-2 mb-1.5 sm:mb-2 text-slate-500">
+                                  <Package size={12} sm:size={14} className="text-brand-orange"/>
+                                  <span className="text-[8px] sm:text-[10px] font-bold uppercase">Shipments</span>
+                               </div>
+                               <p className="text-xl sm:text-2xl font-bold text-slate-900">142</p>
+                            </div>
+                            <div className="col-span-1 hidden md:block bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                               <div className="flex items-center gap-2 mb-2 text-slate-500">
+                                  <Truck size={14} className="text-green-600"/>
+                                  <span className="text-[10px] font-bold uppercase">Drivers</span>
+                               </div>
+                               <p className="text-2xl font-bold text-slate-900">12</p>
+                            </div>
+                         </div>
 
                         {/* Active Shipment Mock */}
                         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
@@ -415,15 +415,15 @@ export const LandingPage: React.FC = () => {
                         </div>
                      </div>
 
-                     {/* Overlay Widget (Total Savings) */}
-                     <div className="absolute bottom-6 right-6 bg-[#0B1120] text-white p-5 rounded-2xl shadow-2xl max-w-[200px] animate-[float_5s_ease-in-out_infinite_1s] border border-white/10 z-20 hover:scale-105 transition-transform cursor-pointer">
-                        <div className="flex justify-between items-center mb-3">
-                           <span className="text-xs text-slate-400 font-medium">Savings</span>
-                           <ArrowRight className="text-brand-orange -rotate-45" size={16}/>
-                        </div>
-                        <p className="text-2xl font-bold tracking-tight mb-1">₦2.4M</p>
-                        <p className="text-[10px] text-slate-500">Optimized routing</p>
-                     </div>
+                      {/* Overlay Widget (Total Savings) */}
+                      <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 bg-[#0B1120] text-white p-3 sm:p-5 rounded-2xl shadow-2xl max-w-[140px] sm:max-w-[200px] animate-[float_5s_ease-in-out_infinite_1s] border border-white/10 z-20 hover:scale-105 transition-transform cursor-pointer">
+                         <div className="flex justify-between items-center mb-2 sm:mb-3">
+                            <span className="text-[10px] sm:text-xs text-slate-400 font-medium">Savings</span>
+                            <ArrowRight className="text-brand-orange -rotate-45" size={12} sm:size={16}/>
+                         </div>
+                         <p className="text-lg sm:text-2xl font-bold tracking-tight mb-0.5 sm:mb-1">₦2.4M</p>
+                         <p className="text-[8px] sm:text-[10px] text-slate-500">Optimized routing</p>
+                      </div>
                   </div>
                </div>
             </div>

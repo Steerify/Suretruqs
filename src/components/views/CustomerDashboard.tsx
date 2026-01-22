@@ -62,8 +62,6 @@ export const CustomerDashboard: React.FC = () => {
 
   // Chat State
   const [showDriverChat, setShowDriverChat] = useState(false);
-  const [driverChatMessages, setDriverChatMessages] = useState(INITIAL_DRIVER_CHAT);
-  const [driverTyping, setDriverTyping] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -107,39 +105,7 @@ export const CustomerDashboard: React.FC = () => {
       setShowRateModal(true);
   };
 
-  const handleDriverSendMessage = (text: string) => {
-      const newMsg = {
-          id: Date.now(),
-          sender: 'Me',
-          text: text,
-          time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-          isMe: true
-      };
-      setDriverChatMessages(prev => [...prev, newMsg]);
 
-      // Simulate Driver Reply
-      setTimeout(() => {
-          setDriverTyping(true);
-          setTimeout(() => {
-              setDriverTyping(false);
-              const replies = [
-                  "Got it, thanks!",
-                  "I'm stuck in a bit of traffic, will be there shortly.",
-                  "Can you confirm the gate number?",
-                  "Almost there!"
-              ];
-              const randomReply = replies[Math.floor(Math.random() * replies.length)];
-              
-              setDriverChatMessages(prev => [...prev, {
-                  id: Date.now() + 1,
-                  sender: 'Driver',
-                  text: randomReply,
-                  time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                  isMe: false
-              }]);
-          }, 1500);
-      }, 1000);
-  };
 
   const handleCreateShipmentInternal = (data: Partial<Shipment>) => {
       createShipment(data);
@@ -169,7 +135,13 @@ export const CustomerDashboard: React.FC = () => {
       {showPasswordModal && <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />}
       {showRateModal && <RateDriverModal onClose={() => setShowRateModal(false)} onRate={handleRateDriverInternal} driverName={drivers.find(d => d.id === ratingShipment?.driverId)?.name || 'Driver'} trackingId={ratingShipment?.trackingId || ''} />}
       {showAddCardModal && <AddCardModal onClose={() => setShowAddCardModal(false)} onAdd={handleAddCard} />}
-      {showDriverChat && <DriverChatModal driverName={activeShipment && activeShipment.driverId ? drivers.find(d => d.id === activeShipment.driverId)?.name || 'Driver' : 'Musa Ibrahim'} messages={driverChatMessages} onClose={() => setShowDriverChat(false)} onSendMessage={handleDriverSendMessage} isTyping={driverTyping} />}
+      {showDriverChat && activeShipment && (
+        <DriverChatModal 
+          driverName={activeShipment.driverId ? drivers.find(d => d.id === activeShipment.driverId)?.name || 'Driver' : 'Dispatch'} 
+          shipmentId={activeShipment.id}
+          onClose={() => setShowDriverChat(false)} 
+        />
+      )}
       
       <CustomerTopBar user={user} view={view} setView={setView} showNotifications={showNotifications} setShowNotifications={setShowNotifications} onLogout={logout} />
       {showNotifications && <NotificationPanel />}

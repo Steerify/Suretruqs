@@ -57,8 +57,6 @@ export const DriverDashboard: React.FC = () => {
   
   // Customer Chat State
   const [showCustomerChat, setShowCustomerChat] = useState(false);
-  const [customerMessages, setCustomerMessages] = useState(INITIAL_CUSTOMER_CHAT);
-  const [customerTyping, setCustomerTyping] = useState(false);
   
   // SOS State
   const [showSOS, setShowSOS] = useState(false);
@@ -112,39 +110,7 @@ export const DriverDashboard: React.FC = () => {
       }, 2000);
   };
 
-  const handleCustomerSendMessage = (text: string) => {
-      const newMsg = {
-          id: Date.now(),
-          sender: 'Me',
-          text: text,
-          time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-          isMe: true
-      };
-      setCustomerMessages(prev => [...prev, newMsg]);
 
-      // Simulate Customer Reply
-      setTimeout(() => {
-          setCustomerTyping(true);
-          setTimeout(() => {
-              setCustomerTyping(false);
-              const replies = [
-                  "Okay, I'll be waiting.",
-                  "Thanks for the update!",
-                  "Please drive safely.",
-                  "I'm at the warehouse entrance."
-              ];
-              const randomReply = replies[Math.floor(Math.random() * replies.length)];
-              
-              setCustomerMessages(prev => [...prev, {
-                  id: Date.now() + 1,
-                  sender: 'Customer',
-                  text: randomReply,
-                  time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                  isMe: false
-              }]);
-          }, 1500);
-      }, 1000);
-  };
 
   const handleBankSave = (bankData: { bank: string, accountNumber: string }) => {
       setPayoutDetails({

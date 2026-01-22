@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { UserRole, Shipment, User, ShipmentStatus, Driver, ChatMessage } from '../types';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { io, Socket } from 'socket.io-client';
+import api from '../utils/api';
+import walletApi from '../utils/walletApi';
+import { UserRole, Shipment, User, ShipmentStatus, Driver, ChatMessage, Transaction } from '../types';
+
+const SOCKET_URL = (import.meta as any).env.VITE_SOCKET_URL || 'http://localhost:5000';
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Mock Initial Data
 const INITIAL_SHIPMENTS: Shipment[] = [
@@ -32,6 +38,11 @@ const INITIAL_SHIPMENTS: Shipment[] = [
   }
 ];
 
+const INITIAL_CUSTOMERS: User[] = [
+  { id: 'CUST-001', name: 'Shoprite NG', role: UserRole.CUSTOMER, email: 'logistics@shoprite.ng', company: 'Shoprite Nigeria', onboarded: true },
+  { id: 'CUST-002', name: 'Jumia Warehouse', role: UserRole.CUSTOMER, email: 'inbound@jumia.com', company: 'Jumia Nigeria', onboarded: true },
+];
+
 const INITIAL_DRIVERS: Driver[] = [
   { id: 'DRV-002', name: 'Musa Ibrahim', vehicleType: 'Flatbed Truck', plateNumber: 'KANO-882', rating: 4.8, isOnline: true, location: 'Apapa, Lagos', trips: 142, avatarColor: 'bg-blue-100 text-blue-600' },
   { id: 'DRV-003', name: 'Chinedu Okeke', vehicleType: 'Box Truck', plateNumber: 'LAG-551', rating: 4.9, isOnline: true, location: 'Ikeja, Lagos', trips: 89, avatarColor: 'bg-green-100 text-green-600' },
@@ -43,14 +54,18 @@ interface StoreContextType {
   currentUser: User | null;
   shipments: Shipment[];
   drivers: Driver[];
+  customers: User[];
   incomingJob: Shipment | null;
   messages: Record<string, ChatMessage[]>;
   isTyping: Record<string, boolean>; // shipmentId -> boolean
+  walletBalance: number;
+  transactions: Transaction[];
 
   // Actions
-  login: (role: UserRole, isSignup: boolean) => void;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (userData: any) => Promise<void>;
   logout: () => void;
-  completeOnboarding: () => void;
+  completeOnboarding: (onboardingData: any) => Promise<void>;
   createShipment: (newShipmentData: Partial<Shipment>) => void;
   acceptJob: (shipmentId: string) => void;
   updateStatus: (shipmentId: string, newStatus: ShipmentStatus) => void;
@@ -58,6 +73,9 @@ interface StoreContextType {
   dismissJobAlert: () => void;
   setIncomingJob: (job: Shipment | null) => void;
   sendMessage: (shipmentId: string, text: string) => void;
+  fetchWalletData: () => Promise<void>;
+  topUpWallet: (amount: number) => Promise<any>;
+  verifyWalletDeposit: (reference: string, amount: number) => Promise<any>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -66,80 +84,173 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [shipments, setShipments] = useState<Shipment[]>(INITIAL_SHIPMENTS);
   const [drivers, setDrivers] = useState<Driver[]>(INITIAL_DRIVERS);
+  const [customers] = useState<User[]>(INITIAL_CUSTOMERS);
   const [incomingJob, setIncomingJob] = useState<Shipment | null>(null);
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [isTyping, setIsTyping] = useState<Record<string, boolean>>({});
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-  const login = (role: UserRole, isSignup: boolean) => {
-    const mockUser: User = {
-      id: role === UserRole.CUSTOMER ? 'CUST-001' : 'DRV-001',
-      name: role === UserRole.CUSTOMER ? 'Shoprite NG' : 'John Doe',
-      role: role,
-      email: role === UserRole.CUSTOMER ? 'logistics@shoprite.ng' : 'john@driver.com',
-      company: role === UserRole.CUSTOMER ? 'Shoprite Nigeria' : undefined,
-      onboarded: !isSignup
+  // Initialize Auth & Socket
+  useEffect(() => {
+    const initData = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const userRes = await api.get('/auth/me');
+          setCurrentUser(userRes.data);
+          
+          // Fetch shipments for user
+          const shipmentFilter = userRes.data.role === UserRole.DRIVER 
+            ? `?driver_id=${userRes.data.id}` 
+            : `?customer_id=${userRes.data.id}`;
+          const shipmentsRes = await api.get(`/shipments${shipmentFilter}`);
+          setShipments(shipmentsRes.data);
+
+          // Fetch available drivers (if customer)
+          if (userRes.data.role === UserRole.CUSTOMER) {
+            const driversRes = await api.get('/users/drivers');
+            setDrivers(driversRes.data);
+          }
+
+          // Fetch Wallet Data
+          await fetchWalletData();
+        } catch (error) {
+          localStorage.removeItem('token');
+        }
+      }
     };
-    setCurrentUser(mockUser);
-  };
+    initData();
+  }, []);
 
-  const logout = () => {
-    setCurrentUser(null);
-  };
+  useEffect(() => {
+    const newSocket = io(SOCKET_URL);
+    setSocket(newSocket);
 
-  const completeOnboarding = () => {
-    if (currentUser) {
-      setCurrentUser({ ...currentUser, onboarded: true });
+    newSocket.on('new_message', (data: any) => {
+      setMessages(prev => ({
+        ...prev,
+        [data.shipmentId]: [...(prev[data.shipmentId] || []), {
+          id: Date.now().toString(),
+          senderId: data.senderId,
+          shipmentId: data.shipmentId,
+          text: data.text,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isMe: data.senderId === currentUser?.id
+        }]
+      }));
+    });
+
+    newSocket.on('user_typing', (data: any) => {
+      setIsTyping(prev => ({ ...prev, [data.shipmentId]: data.isTyping }));
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [currentUser?.id]);
+
+  // Join rooms for active shipments
+  useEffect(() => {
+    if (socket && currentUser) {
+      shipments.forEach(s => {
+        if (s.id && (s.customerId === currentUser.id || s.driverId === currentUser.id)) {
+          socket.emit('join_shipment_chat', s.id);
+        }
+      });
+    }
+  }, [socket, shipments, currentUser?.id]);
+
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      localStorage.setItem('token', response.data.token);
+      setCurrentUser(response.data.user);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Login failed');
     }
   };
 
-  const createShipment = (newShipmentData: Partial<Shipment>) => {
+  const signup = async (userData: any) => {
+    try {
+      const response = await api.post('/auth/register', userData);
+      localStorage.setItem('token', response.data.token);
+      setCurrentUser(response.data.user);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Signup failed');
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setCurrentUser(null);
+  };
+
+  const completeOnboarding = async (onboardingData: any) => {
+    try {
+      const response = await api.post('/users/onboard', onboardingData);
+      
+      if (currentUser) {
+        setCurrentUser({ 
+          ...currentUser, 
+          ...response.data.user,
+          onboarded: true
+        });
+      }
+    } catch (error) {
+      console.error('Onboarding Error:', error);
+      throw error;
+    }
+  };
+
+  const createShipment = async (newShipmentData: Partial<Shipment>) => {
     if (!currentUser) return;
-
-    const newShipment: Shipment = {
-      id: `SH-${Date.now()}`,
-      trackingId: `TRK-${Math.floor(Math.random() * 9000) + 1000}-LAG`,
-      customerId: currentUser.id,
-      pickup: newShipmentData.pickup || { address: 'Unknown', lat: 0, lng: 0 },
-      dropoff: newShipmentData.dropoff || { address: 'Unknown', lat: 0, lng: 0 },
-      status: newShipmentData.driverId ? ShipmentStatus.ASSIGNED : ShipmentStatus.PENDING,
-      price: newShipmentData.price || 0,
-      date: new Date().toISOString(),
-      vehicleType: newShipmentData.vehicleType,
-      cargoType: newShipmentData.cargoType,
-      weight: newShipmentData.weight,
-      driverId: newShipmentData.driverId,
-      cargoImage: newShipmentData.cargoImage,
-      distance: '12.5 km'
-    };
-
-    setShipments(prev => [newShipment, ...prev]);
-    // Simulate notification
-    setTimeout(() => {
-        setIncomingJob(newShipment);
-    }, 2000)
+    try {
+      const response = await api.post('/shipments', newShipmentData);
+      setShipments(prev => [response.data, ...prev]);
+    } catch (error: any) {
+      console.error('Create Shipment Error:', error);
+      throw new Error(error.response?.data?.message || 'Failed to create shipment');
+    }
   };
 
-  const acceptJob = (shipmentId: string) => {
+  const acceptJob = async (shipmentId: string) => {
     if (!currentUser || currentUser.role !== UserRole.DRIVER) return;
-
-    setShipments(prev => prev.map(s => 
-      s.id === shipmentId 
-        ? { ...s, status: ShipmentStatus.ASSIGNED, driverId: currentUser.id }
-        : s
-    ));
-    setIncomingJob(null);
+    try {
+      const response = await api.patch(`/shipments/${shipmentId}/status`, { status: ShipmentStatus.ASSIGNED });
+      setShipments(prev => prev.map(s => 
+        s.id === shipmentId ? response.data : s
+      ));
+      setIncomingJob(null);
+    } catch (error: any) {
+      console.error('Accept Job Error:', error);
+      throw new Error(error.response?.data?.message || 'Failed to accept job');
+    }
   };
 
-  const updateStatus = (shipmentId: string, newStatus: ShipmentStatus) => {
-    setShipments(prev => prev.map(s => 
-      s.id === shipmentId ? { ...s, status: newStatus } : s
-    ));
+  const updateStatus = async (shipmentId: string, newStatus: ShipmentStatus) => {
+    try {
+      const response = await api.patch(`/shipments/${shipmentId}/status`, { status: newStatus });
+      setShipments(prev => prev.map(s => 
+        s.id === shipmentId ? response.data : s
+      ));
+    } catch (error: any) {
+      console.error('Update Status Error:', error);
+      throw new Error(error.response?.data?.message || 'Failed to update status');
+    }
   };
 
-  const rateDriver = (shipmentId: string, rating: number, review: string) => {
-    setShipments(prev => prev.map(s => 
-      s.id === shipmentId ? { ...s, rating, review } : s
-    ));
+  const rateDriver = async (shipmentId: string, rating: number, review: string) => {
+    try {
+      await api.post(`/shipments/${shipmentId}/rate`, { rating, reviewText: review });
+      setShipments(prev => prev.map(s => 
+        s.id === shipmentId ? { ...s, rating, review } : s
+      ));
+    } catch (error: any) {
+      console.error('Rate Driver Error:', error);
+      throw new Error(error.response?.data?.message || 'Failed to rate driver');
+    }
   };
 
   const dismissJobAlert = () => {
@@ -147,54 +258,68 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const sendMessage = (shipmentId: string, text: string) => {
-      if (!currentUser) return;
+    if (!currentUser || !socket) return;
 
-      const newMessage: ChatMessage = {
-          id: Date.now().toString(),
-          senderId: currentUser.id,
-          shipmentId,
-          text,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isMe: true
-      };
+    const messageData = {
+      shipmentId,
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+      text
+    };
 
-      setMessages(prev => ({
-          ...prev,
-          [shipmentId]: [...(prev[shipmentId] || []), newMessage]
-      }));
+    // Emit to server
+    socket.emit('send_message', messageData);
+  };
 
-      // Simulate Reply
-      setTimeout(() => {
-          setIsTyping(prev => ({ ...prev, [shipmentId]: true }));
-          
-          setTimeout(() => {
-               setIsTyping(prev => ({ ...prev, [shipmentId]: false }));
-               
-               const replies = [
-                   "Okay, noted.",
-                   "I'm on my way.",
-                   "Can you clarify the location?",
-                   "Thank you!",
-                   "Please wait a moment."
-               ];
-               const randomReply = replies[Math.floor(Math.random() * replies.length)];
+  const fetchWalletData = async () => {
+    try {
+      const balanceRes = await walletApi.get('/wallet/');
+      setWalletBalance(balanceRes.data.balance || 0);
 
-               const replyMsg: ChatMessage = {
-                   id: (Date.now() + 1).toString(),
-                   senderId: 'OTHER_USER',
-                   shipmentId,
-                   text: randomReply,
-                   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                   isMe: false
-               };
+      const historyRes = await walletApi.get('/wallet/history/');
+      setTransactions(historyRes.data);
+    } catch (error) {
+      console.error('Wallet Fetch Error:', error);
+      // Fallback to suretruqs backend if safewallet fails
+      try {
+        const balanceRes = await api.get('/wallet/balance');
+        setWalletBalance(balanceRes.data.balance || 0);
+        const historyRes = await api.get('/wallet/history');
+        setTransactions(historyRes.data);
+      } catch (err) {
+        console.error('SureTruqs Wallet Fetch Error:', err);
+      }
+    }
+  };
 
-               setMessages(prev => ({
-                   ...prev,
-                   [shipmentId]: [...(prev[shipmentId] || []), replyMsg]
-               }));
+  const topUpWallet = async (amount: number) => {
+    try {
+      const response = await walletApi.post('/wallet/deposit/initiate/', { amount });
+      return response.data; // reference, authorization_url, etc.
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Deposit initiation failed');
+    }
+  };
 
-          }, 1500 + Math.random() * 1000); // Random typing delay
-      }, 500);
+  const verifyWalletDeposit = async (reference: string, amount: number) => {
+    try {
+      // 1. Verify in SafeWallet
+      const safeWalletRes = await walletApi.get(`/wallet/deposit/verify/?reference=${reference}`);
+      
+      // 2. Log in SureTruqs Backend (As requested: saved in both)
+      await api.post('/wallet/transaction', {
+        type: 'CREDIT',
+        amount: amount,
+        description: 'Wallet Top-up (Paystack)',
+        reference: reference
+      });
+
+      await fetchWalletData();
+      return safeWalletRes.data;
+    } catch (error: any) {
+      console.error('Verification Error:', error);
+      throw new Error('Payment verification failed');
+    }
   };
 
   return (
@@ -202,10 +327,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       currentUser,
       shipments,
       drivers,
+      customers,
       incomingJob,
       messages,
       isTyping,
+      walletBalance,
+      transactions,
       login,
+      signup,
       logout,
       completeOnboarding,
       createShipment,
@@ -214,7 +343,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       rateDriver,
       dismissJobAlert,
       setIncomingJob,
-      sendMessage
+      sendMessage,
+      fetchWalletData,
+      topUpWallet,
+      verifyWalletDeposit
     }}>
       {children}
     </StoreContext.Provider>
