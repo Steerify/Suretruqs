@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowDownLeft, MapPin, X } from 'lucide-react';
+import { ArrowDownLeft, MapPin } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
-import { Shipment, Driver } from '../../../types';
+import { Shipment } from '../../../types';
 
-export const NewShipmentView = ({ onBack, onCreate, selectedDriver, onRemoveDriver }: { onBack: () => void, onCreate: (data: Partial<Shipment>) => void, selectedDriver: Driver | null, onRemoveDriver: () => void }) => {
+export const NewShipmentView = ({ onBack, onCreate }: { onBack: () => void, onCreate: (data: Partial<Shipment>) => void }) => {
     const [formData, setFormData] = useState({
         pickup: '',
         dropoff: '',
@@ -17,7 +17,7 @@ export const NewShipmentView = ({ onBack, onCreate, selectedDriver, onRemoveDriv
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setCreating(true);
-        // Simulate creating shipment
+        // Simulate creating shipment - customer requests driver through admin
         setTimeout(() => {
             onCreate({
                 pickup: { address: formData.pickup, lat: 0, lng: 0 },
@@ -25,8 +25,10 @@ export const NewShipmentView = ({ onBack, onCreate, selectedDriver, onRemoveDriv
                 vehicleType: formData.vehicleType,
                 cargoType: formData.cargoType,
                 weight: formData.weight,
-                price: selectedDriver ? 50000 : 0, 
-                driverId: selectedDriver?.id
+                price: formData.vehicleType === 'Box Truck' ? 45000 : 
+                       formData.vehicleType === 'Flatbed Truck' ? 65000 : 
+                       formData.vehicleType === 'Mini Van' ? 25000 : 8000,
+                driverRequestedAt: new Date().toISOString() // Mark as driver requested
             });
             setCreating(false);
         }, 1500);
@@ -79,25 +81,13 @@ export const NewShipmentView = ({ onBack, onCreate, selectedDriver, onRemoveDriv
                         </div>
                     </div>
 
-                    {selectedDriver && (
-                        <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between animate-[fadeIn_0.3s_ease-out]">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${selectedDriver.avatarColor}`}>
-                                    {selectedDriver.name.charAt(0)}
-                                </div>
-                                <div>
-                                    <p className="font-bold text-brand-primary text-sm">Selected Driver</p>
-                                    <p className="text-xs text-slate-600 font-medium">{selectedDriver.name} • {selectedDriver.vehicleType}</p>
-                                </div>
-                            </div>
-                            <button type="button" onClick={onRemoveDriver} className="p-2 hover:bg-blue-100 rounded-full text-slate-400 hover:text-red-500 transition-colors"><X size={18}/></button>
-                        </div>
-                    )}
-
                     <div className="pt-4">
                       <Button type="submit" variant="cta" className="w-full py-4 text-base font-bold shadow-lg shadow-orange-500/20" isLoading={creating}>
-                          {selectedDriver ? `Book ${selectedDriver.name}` : 'Post Shipment Request'}
+                          Request Driver Assignment
                       </Button>
+                      <p className="text-xs text-slate-500 text-center mt-2">
+                          Our admin team will assign an available driver to your shipment
+                      </p>
                     </div>
                 </form>
             </Card>

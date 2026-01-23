@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import gsap from 'gsap';
 import { Truck, Home, Wallet, Clock, User as UserIcon, Wrench } from 'lucide-react';
 import { Shipment, ShipmentStatus, User } from '../../types';
@@ -23,20 +24,12 @@ import { DocumentModal } from '../dashboard/driver/DocumentModal';
 import { BankDetailsModal } from '../dashboard/driver/BankDetailsModal';
 import { CustomerChatModal } from '../dashboard/driver/CustomerChatModal';
 import { SOSModal } from '../dashboard/driver/SOSModal';
+import { FullMapModal } from '../dashboard/common/FullMapModal';
 
-// Mock Chat Messages (Dispatch)
-const INITIAL_CHAT = [
-    { id: 1, sender: 'Dispatch', text: 'Hello, please confirm when you arrive at the pickup point.', time: '10:30 AM', isMe: false },
-    { id: 2, sender: 'Me', text: 'I am 5 minutes away. Traffic is light.', time: '10:32 AM', isMe: true },
-];
-
-// Mock Customer Chat Messages
-const INITIAL_CUSTOMER_CHAT = [
-    { id: 1, sender: 'Customer', text: 'Hi! Please call me when you reach the gate.', time: '12:15 PM', isMe: false },
-];
+// No mock chats
 
 export const DriverDashboard: React.FC = () => {
-  const { currentUser, shipments, incomingJob, acceptJob, updateStatus, dismissJobAlert, logout } = useStore();
+  const { currentUser, shipments, incomingJob, acceptJob, updateStatus, dismissJobAlert, logout, walletBalance, transactions } = useStore();
   
   // Derived State from Store
   const user = currentUser!;
@@ -52,7 +45,7 @@ export const DriverDashboard: React.FC = () => {
   const [showBankModal, setShowBankModal] = useState(false);
   
   // Chat States
-  const [chatMessages, setChatMessages] = useState(INITIAL_CHAT); // Dispatch Chat
+  const [chatMessages, setChatMessages] = useState<any[]>([]); // Support Chat
   const [newMessage, setNewMessage] = useState('');
   
   // Customer Chat State
@@ -61,11 +54,14 @@ export const DriverDashboard: React.FC = () => {
   // SOS State
   const [showSOS, setShowSOS] = useState(false);
 
+  // Map State
+  const [showFullMap, setShowFullMap] = useState(false);
+
   // Payout Method State
   const [payoutDetails, setPayoutDetails] = useState({
-      bankName: 'GTBank',
-      accountNumber: '•••• 1234',
-      verified: true
+      bankName: 'Not Set',
+      accountNumber: '••••',
+      verified: false
   });
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -97,18 +93,7 @@ export const DriverDashboard: React.FC = () => {
       
       setChatMessages([...chatMessages, msg]);
       setNewMessage('');
-      
-      // Mock Reply
-      setTimeout(() => {
-          setChatMessages(prev => [...prev, {
-              id: Date.now() + 1,
-              sender: 'Dispatch',
-              text: 'Message received. We are looking into it.',
-              time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-              isMe: false
-          }]);
-      }, 2000);
-  };
+    };
 
 
 
@@ -119,7 +104,7 @@ export const DriverDashboard: React.FC = () => {
           verified: true
       });
       setShowBankModal(false);
-      alert("Bank details updated successfully!");
+      toast.success("Bank details updated successfully!");
   };
 
   if (!user) return null;
@@ -147,15 +132,16 @@ export const DriverDashboard: React.FC = () => {
          {showBankModal && <BankDetailsModal onClose={() => setShowBankModal(false)} onSave={handleBankSave} userName={user.name} />}
          {showCustomerChat && activeJob && <CustomerChatModal shipmentId={activeJob.id} onClose={() => setShowCustomerChat(false)} />}
          {showSOS && <SOSModal onClose={() => setShowSOS(false)} />}
+         {showFullMap && activeJob && <FullMapModal shipmentId={activeJob.id} onClose={() => setShowFullMap(false)} />}
 
          {view === 'home' && (
              !isOnline ? <DriverOfflineView setIsOnline={setIsOnline} /> :
-             activeJob ? <ActiveJobView activeJob={activeJob} onUpdateStatus={updateStatus} setShowCustomerChat={setShowCustomerChat} setShowSOS={setShowSOS} /> :
-             <DriverDashboardHome user={user} availableJobs={availableJobs} onAcceptJob={acceptJob} setView={setView} />
+             activeJob ? <ActiveJobView activeJob={activeJob} onUpdateStatus={updateStatus} setShowCustomerChat={setShowCustomerChat} setShowSOS={setShowSOS} setShowFullMap={setShowFullMap} /> :
+             <DriverDashboardHome user={user} availableJobs={availableJobs} shipments={shipments} onAcceptJob={acceptJob} setView={setView} />
          )}
 
          {view === 'history' && <DriverHistoryView jobHistory={jobHistory} setSelectedHistoryItem={setSelectedHistoryItem} />}
-         {view === 'wallet' && <EarningsView payoutDetails={payoutDetails} setShowBankModal={setShowBankModal} />}
+         {view === 'wallet' && <EarningsView payoutDetails={payoutDetails} setShowBankModal={setShowBankModal} transactions={transactions} balance={walletBalance} />}
          {view === 'profile' && <DriverProfileView user={user} isOnline={isOnline} setIsOnline={setIsOnline} jobHistory={jobHistory} setViewingDoc={setViewingDoc} />}
          {view === 'maintenance' && <MaintenanceView setView={setView} />}
          {view === 'support' && <SupportView chatMessages={chatMessages} newMessage={newMessage} setNewMessage={setNewMessage} handleSendMessage={handleSendMessage} />}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Building, Mail, Wallet, Package, Bell, Shield, ChevronRight, Save, FileText } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
@@ -24,7 +25,7 @@ export const ProfileView = ({ user, setShowPasswordModal }: ProfileViewProps) =>
         setTimeout(() => {
             setIsEditingProfile(false);
             // In a real app, we would update the user object or re-fetch data here
-            alert("Profile details saved successfully!");
+            toast.success("Profile details saved successfully!");
         }, 800);
     };
 

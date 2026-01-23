@@ -20,7 +20,7 @@ export const RateDriverModal = ({ onClose, onRate, driverName, trackingId }: { o
 
     return (
       <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={onClose}></div>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 p-8 animate-[scaleIn_0.2s_ease-out] text-center">
               <div className="w-20 h-20 bg-slate-100 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl font-bold text-slate-400">
                   {driverName ? driverName.charAt(0) : 'D'}

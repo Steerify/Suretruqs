@@ -1,4 +1,5 @@
 import React from 'react';
+import toast from 'react-hot-toast';
 import { X, FileText, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 
@@ -34,7 +35,7 @@ export const DocumentModal = ({ viewingDoc, onClose }: { viewingDoc: string | nu
             </div>
             <div className="p-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
                 <Button variant="ghost" onClick={onClose}>Close</Button>
-                <Button onClick={() => alert("Downloading...")}>Download Copy</Button>
+                <Button onClick={() => toast.success("Downloading...")}>Download Copy</Button>
             </div>
         </div>
     </div>

@@ -15,4 +15,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Add a response interceptor to handle errors globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/auth'; // Force redirect to login
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

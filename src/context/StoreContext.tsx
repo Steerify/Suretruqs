@@ -1,54 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
+import toast from 'react-hot-toast';
 import api from '../utils/api';
-import walletApi from '../utils/walletApi';
 import { UserRole, Shipment, User, ShipmentStatus, Driver, ChatMessage, Transaction } from '../types';
 
 const SOCKET_URL = (import.meta as any).env.VITE_SOCKET_URL || 'http://localhost:5000';
 const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Mock Initial Data
-const INITIAL_SHIPMENTS: Shipment[] = [
-  { 
-    id: 'SH-INITIAL-01', 
-    trackingId: 'TRK-DEMO-001', 
-    customerId: 'CUST-001',
-    pickup: { address: 'Apapa Wharf, Terminal B', lat: 0, lng: 0 }, 
-    dropoff: { address: 'Trade Fair Complex, Ojo', lat: 0, lng: 0 }, 
-    status: ShipmentStatus.PENDING, 
-    price: 65000, 
-    date: new Date(Date.now() - 86400000).toISOString(),
-    cargoType: 'Container (20ft)',
-    weight: '20 Tons',
-    distance: '18.5 km'
-  },
-  { 
-    id: 'SH-INITIAL-02', 
-    trackingId: 'TRK-DEMO-002', 
-    customerId: 'CUST-001',
-    pickup: { address: 'Ikeja City Mall', lat: 0, lng: 0 }, 
-    dropoff: { address: 'Magodo Phase 2', lat: 0, lng: 0 }, 
-    status: ShipmentStatus.DELIVERED, 
-    price: 22000, 
-    date: new Date(Date.now() - 172800000).toISOString(), 
-    driverId: 'DRV-001',
-    cargoType: 'Electronics',
-    weight: '50kg',
-    distance: '6.2 km'
-  }
-];
-
-const INITIAL_CUSTOMERS: User[] = [
-  { id: 'CUST-001', name: 'Shoprite NG', role: UserRole.CUSTOMER, email: 'logistics@shoprite.ng', company: 'Shoprite Nigeria', onboarded: true },
-  { id: 'CUST-002', name: 'Jumia Warehouse', role: UserRole.CUSTOMER, email: 'inbound@jumia.com', company: 'Jumia Nigeria', onboarded: true },
-];
-
-const INITIAL_DRIVERS: Driver[] = [
-  { id: 'DRV-002', name: 'Musa Ibrahim', vehicleType: 'Flatbed Truck', plateNumber: 'KANO-882', rating: 4.8, isOnline: true, location: 'Apapa, Lagos', trips: 142, avatarColor: 'bg-blue-100 text-blue-600' },
-  { id: 'DRV-003', name: 'Chinedu Okeke', vehicleType: 'Box Truck', plateNumber: 'LAG-551', rating: 4.9, isOnline: true, location: 'Ikeja, Lagos', trips: 89, avatarColor: 'bg-green-100 text-green-600' },
-  { id: 'DRV-004', name: 'Sunday Joseph', vehicleType: 'Mini Van', plateNumber: 'ABJ-112', rating: 4.5, isOnline: false, location: 'Yaba, Lagos', trips: 34, avatarColor: 'bg-orange-100 text-orange-600' },
-  { id: 'DRV-005', name: 'Emmanuel Taiwo', vehicleType: 'Box Truck', plateNumber: 'OG-221', rating: 4.7, isOnline: true, location: 'Lekki, Lagos', trips: 210, avatarColor: 'bg-purple-100 text-purple-600' },
-];
+// Initial State removed to ensure all data is live from backend.
 
 interface StoreContextType {
   currentUser: User | null;
@@ -60,11 +19,16 @@ interface StoreContextType {
   isTyping: Record<string, boolean>; // shipmentId -> boolean
   walletBalance: number;
   transactions: Transaction[];
+  shipmentLocations: Record<string, { lat: number, lng: number }>;
+  adminNotifications: any[];
+  hasTransactionPin: boolean;
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
   signup: (userData: any) => Promise<void>;
   logout: () => void;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (data: any) => Promise<void>;
   completeOnboarding: (onboardingData: any) => Promise<void>;
   createShipment: (newShipmentData: Partial<Shipment>) => void;
   acceptJob: (shipmentId: string) => void;
@@ -76,20 +40,26 @@ interface StoreContextType {
   fetchWalletData: () => Promise<void>;
   topUpWallet: (amount: number) => Promise<any>;
   verifyWalletDeposit: (reference: string, amount: number) => Promise<any>;
+  withdrawFunds: (data: any) => Promise<void>;
+  setTransactionPin: (pin: string) => Promise<void>;
+  assignDriverToShipment: (shipmentId: string, driverId: string, adminId: string, notes?: string) => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [shipments, setShipments] = useState<Shipment[]>(INITIAL_SHIPMENTS);
-  const [drivers, setDrivers] = useState<Driver[]>(INITIAL_DRIVERS);
-  const [customers] = useState<User[]>(INITIAL_CUSTOMERS);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [customers, setCustomers] = useState<User[]>([]);
   const [incomingJob, setIncomingJob] = useState<Shipment | null>(null);
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [isTyping, setIsTyping] = useState<Record<string, boolean>>({});
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [shipmentLocations, setShipmentLocations] = useState<Record<string, { lat: number, lng: number }>>({});
+  const [adminNotifications, setAdminNotifications] = useState<any[]>([]);
+  const [hasTransactionPin, setHasTransactionPin] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
 
   // Initialize Auth & Socket
@@ -100,24 +70,37 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         try {
           const userRes = await api.get('/auth/me');
           setCurrentUser(userRes.data);
+          setHasTransactionPin(!!userRes.data.transactionPin);
           
           // Fetch shipments for user
-          const shipmentFilter = userRes.data.role === UserRole.DRIVER 
-            ? `?driver_id=${userRes.data.id}` 
-            : `?customer_id=${userRes.data.id}`;
+          let shipmentFilter = '';
+          if (userRes.data.role === UserRole.DRIVER) {
+            shipmentFilter = `?driver_id=${userRes.data.id || userRes.data._id}`;
+          } else if (userRes.data.role === UserRole.CUSTOMER) {
+            shipmentFilter = `?customer_id=${userRes.data.id || userRes.data._id}`;
+          }
+          
           const shipmentsRes = await api.get(`/shipments${shipmentFilter}`);
           setShipments(shipmentsRes.data);
 
-          // Fetch available drivers (if customer)
-          if (userRes.data.role === UserRole.CUSTOMER) {
+          // Fetch available drivers (if customer or admin)
+          if (userRes.data.role === UserRole.CUSTOMER || userRes.data.role === UserRole.ADMIN) {
             const driversRes = await api.get('/users/drivers');
             setDrivers(driversRes.data);
+          }
+
+          // Fetch customers (if admin)
+          if (userRes.data.role === UserRole.ADMIN) {
+             const customersRes = await api.get('/users'); // Assuming this returns all users or customers
+             setCustomers(customersRes.data.filter((u: User) => u.role === UserRole.CUSTOMER));
           }
 
           // Fetch Wallet Data
           await fetchWalletData();
         } catch (error) {
+          console.error("Initialization error:", error);
           localStorage.removeItem('token');
+          setCurrentUser(null);
         }
       }
     };
@@ -125,19 +108,22 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   useEffect(() => {
-    const newSocket = io(SOCKET_URL);
+    const token = localStorage.getItem('token');
+    const newSocket = io(SOCKET_URL, {
+      auth: { token }
+    });
     setSocket(newSocket);
 
     newSocket.on('new_message', (data: any) => {
       setMessages(prev => ({
         ...prev,
         [data.shipmentId]: [...(prev[data.shipmentId] || []), {
-          id: Date.now().toString(),
+          id: data.id || Date.now().toString(),
           senderId: data.senderId,
           shipmentId: data.shipmentId,
           text: data.text,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isMe: data.senderId === currentUser?.id
+          timestamp: new Date(data.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isMe: data.senderId === (currentUser?.id || (currentUser as any)?._id)
         }]
       }));
     });
@@ -146,29 +132,112 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setIsTyping(prev => ({ ...prev, [data.shipmentId]: data.isTyping }));
     });
 
+    newSocket.on('location_updated', (data: any) => {
+      setShipmentLocations(prev => ({
+        ...prev,
+        [data.shipmentId]: { lat: data.lat, lng: data.lng }
+      }));
+    });
+
+    newSocket.on('global_location_updated', (data: any) => {
+      setShipmentLocations(prev => ({
+        ...prev,
+        [data.shipmentId]: { lat: data.lat, lng: data.lng }
+      }));
+    });
+
+    newSocket.on('wallet_updated', (data: any) => {
+        setWalletBalance(data.balance);
+        fetchWalletData(); // Refresh transaction history
+        toast.success("Wallet updated!");
+    });
+
+    newSocket.on('admin_notification', (data: any) => {
+        setAdminNotifications(prev => [data, ...prev].slice(0, 50));
+        toast.custom((t) => (
+            <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-2xl rounded-[1.5rem] pointer-events-auto flex ring-1 ring-black ring-opacity-5 overflow-hidden border border-brand-orange/20`}>
+              <div className="flex-1 w-0 p-5">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 pt-0.5">
+                    <div className="bg-brand-orange/10 p-2 rounded-xl text-brand-orange uppercase text-[10px] font-black tracking-widest">ADMIN</div>
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <p className="text-sm font-black text-slate-900">{data.title}</p>
+                    <p className="mt-1 text-sm text-slate-500 font-medium">{data.message}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex border-l border-slate-100 p-2 items-center">
+                <button
+                  onClick={() => toast.dismiss(t.id)}
+                  className="w-full border border-transparent rounded-xl p-2 flex items-center justify-center text-xs font-black text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+        ), { duration: 5000 });
+    });
+
     return () => {
       newSocket.disconnect();
     };
   }, [currentUser?.id]);
 
+  // Fetch historical messages for shipments (Optimized: Single API Call)
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      if (!currentUser || shipments.length === 0) return;
+      
+      try {
+        const res = await api.get('/chat/history/all');
+        const chatData: Record<string, ChatMessage[]> = {};
+        
+        res.data.forEach((m: any) => {
+            const sId = m.shipmentId;
+            if (!chatData[sId]) chatData[sId] = [];
+            
+            chatData[sId].unshift({
+                id: m._id,
+                senderId: m.senderId._id || m.senderId,
+                shipmentId: m.shipmentId,
+                text: m.text,
+                timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                isMe: (m.senderId._id || m.senderId) === (currentUser.id || (currentUser as any)._id)
+            });
+        });
+
+        setMessages(chatData);
+      } catch (err) {
+        console.error("Error fetching bulk chat history:", err);
+      }
+    };
+    fetchChatHistory();
+  }, [shipments.length, currentUser?.id]);
+
   // Join rooms for active shipments
   useEffect(() => {
     if (socket && currentUser) {
       shipments.forEach(s => {
-        if (s.id && (s.customerId === currentUser.id || s.driverId === currentUser.id)) {
+        if (s.id && (s.customerId === (currentUser.id || (currentUser as any)._id) || s.driverId === (currentUser.id || (currentUser as any)._id))) {
           socket.emit('join_shipment_chat', s.id);
         }
       });
+
+      if (currentUser.role === UserRole.ADMIN) {
+        socket.emit('join_admin_tracking');
+      }
     }
-  }, [socket, shipments, currentUser?.id]);
+  }, [socket, shipments, currentUser]);
 
   const login = async (email: string, password: string) => {
     try {
       const response = await api.post('/auth/login', { email, password });
+      
       localStorage.setItem('token', response.data.token);
       setCurrentUser(response.data.user);
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
+      throw new Error(error.response?.data?.message || error.message || 'Login failed');
     }
   };
 
@@ -185,6 +254,24 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const logout = () => {
     localStorage.removeItem('token');
     setCurrentUser(null);
+  };
+
+  const forgotPassword = async (email: string) => {
+    try {
+        await api.post('/auth/forgot-password', { email });
+        toast.success("OTP sent to your email!");
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Failed to send OTP');
+    }
+  };
+
+  const resetPassword = async (data: any) => {
+    try {
+        await api.post('/auth/reset-password', data);
+        toast.success("Password reset successful!");
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Failed to reset password');
+    }
   };
 
   const completeOnboarding = async (onboardingData: any) => {
@@ -262,63 +349,84 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const messageData = {
       shipmentId,
-      senderId: currentUser.id,
+      senderId: currentUser.id || (currentUser as any)._id,
       senderName: currentUser.name,
       text
     };
 
-    // Emit to server
+    // Emit to server - the server will now persist and broadcast it
     socket.emit('send_message', messageData);
   };
 
   const fetchWalletData = async () => {
     try {
-      const balanceRes = await walletApi.get('/wallet/');
+      const balanceRes = await api.get('/wallet/balance');
       setWalletBalance(balanceRes.data.balance || 0);
-
-      const historyRes = await walletApi.get('/wallet/history/');
+      const historyRes = await api.get('/wallet/history');
       setTransactions(historyRes.data);
-    } catch (error) {
-      console.error('Wallet Fetch Error:', error);
-      // Fallback to suretruqs backend if safewallet fails
-      try {
-        const balanceRes = await api.get('/wallet/balance');
-        setWalletBalance(balanceRes.data.balance || 0);
-        const historyRes = await api.get('/wallet/history');
-        setTransactions(historyRes.data);
-      } catch (err) {
-        console.error('SureTruqs Wallet Fetch Error:', err);
-      }
+    } catch (err) {
+      console.error('Wallet Fetch Error:', err);
     }
   };
 
   const topUpWallet = async (amount: number) => {
     try {
-      const response = await walletApi.post('/wallet/deposit/initiate/', { amount });
-      return response.data; // reference, authorization_url, etc.
+      const response = await api.post('/wallet/deposit/initiate', { amount });
+      return response.data; // reference, amount
     } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Deposit initiation failed');
+      throw new Error(error.response?.data?.message || 'Deposit initiation failed');
     }
   };
 
-  const verifyWalletDeposit = async (reference: string, amount: number) => {
+  const verifyWalletDeposit = async (reference: string) => {
     try {
-      // 1. Verify in SafeWallet
-      const safeWalletRes = await walletApi.get(`/wallet/deposit/verify/?reference=${reference}`);
-      
-      // 2. Log in SureTruqs Backend (As requested: saved in both)
-      await api.post('/wallet/transaction', {
-        type: 'CREDIT',
-        amount: amount,
-        description: 'Wallet Top-up (Paystack)',
-        reference: reference
-      });
-
-      await fetchWalletData();
-      return safeWalletRes.data;
+      const response = await api.get(`/wallet/deposit/verify?reference=${reference}`);
+      await fetchWalletData(); // Refresh UI
+      return response.data;
     } catch (error: any) {
-      console.error('Verification Error:', error);
-      throw new Error('Payment verification failed');
+      console.error('Wallet Verification Error:', error);
+      throw error;
+    }
+  };
+
+  const withdrawFunds = async (data: any) => {
+    try {
+        const response = await api.post('/wallet/withdraw', data);
+        setWalletBalance(response.data.balance);
+        await fetchWalletData();
+        toast.success("Withdrawal successful!");
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Withdrawal failed');
+    }
+  };
+
+  const setTransactionPin = async (pin: string) => {
+    try {
+        await api.post('/wallet/pin/set', { pin });
+        setHasTransactionPin(true);
+        toast.success("Transaction PIN set successfully!");
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Failed to set PIN');
+    }
+  };
+
+  const assignDriverToShipment = async (shipmentId: string, driverId: string, adminId: string, notes?: string) => {
+    try {
+      const updateData = {
+        driverId,
+        status: ShipmentStatus.ASSIGNED,
+        adminAssignedBy: adminId,
+        adminNotes: notes
+      };
+      
+      const response = await api.patch(`/shipments/${shipmentId}/assign-driver`, updateData);
+      
+      setShipments(prev => prev.map(s => 
+        s.id === shipmentId ? response.data : s
+      ));
+    } catch (error: any) {
+      console.error('Assign Driver Error:', error);
+      throw new Error(error.response?.data?.message || 'Failed to assign driver');
     }
   };
 
@@ -333,9 +441,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       isTyping,
       walletBalance,
       transactions,
+      shipmentLocations,
+      adminNotifications,
+      hasTransactionPin,
       login,
       signup,
       logout,
+      forgotPassword,
+      resetPassword,
       completeOnboarding,
       createShipment,
       acceptJob,
@@ -346,7 +459,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       sendMessage,
       fetchWalletData,
       topUpWallet,
-      verifyWalletDeposit
+      verifyWalletDeposit,
+      withdrawFunds,
+      setTransactionPin,
+      assignDriverToShipment
     }}>
       {children}
     </StoreContext.Provider>

@@ -1,17 +1,21 @@
 import React from 'react';
+import toast from 'react-hot-toast';
 import { Truck, Navigation, CheckCircle, MapPin, MessageSquare, Phone, XCircle } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Shipment, ShipmentStatus } from '../../../types';
+import { useLocationTracking } from '../../../hooks/useLocationTracking';
 
 interface ActiveJobViewProps {
     activeJob: Shipment;
     onUpdateStatus: (id: string, status: ShipmentStatus) => void;
     setShowCustomerChat: (show: boolean) => void;
     setShowSOS: (show: boolean) => void;
+    setShowFullMap: (show: boolean) => void;
 }
 
-export const ActiveJobView = ({ activeJob, onUpdateStatus, setShowCustomerChat, setShowSOS }: ActiveJobViewProps) => {
+export const ActiveJobView = ({ activeJob, onUpdateStatus, setShowCustomerChat, setShowSOS, setShowFullMap }: ActiveJobViewProps) => {
+    useLocationTracking(activeJob.id, true);
 
     const handleStatusUpdate = () => {
         if (!activeJob) return;
@@ -77,9 +81,14 @@ export const ActiveJobView = ({ activeJob, onUpdateStatus, setShowCustomerChat, 
                         <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end">
                             <div className="bg-white/95 backdrop-blur px-6 py-4 rounded-2xl shadow-xl border border-slate-100">
                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Distance Remaining</p>
-                                <p className="text-3xl font-bold text-slate-900 tracking-tight">2.4 km</p>
+                                <p className="text-3xl font-bold text-slate-900 tracking-tight">Active Room</p>
                             </div>
-                            <Button size="lg" variant="secondary" className="h-16 w-16 rounded-full p-0 flex items-center justify-center shadow-xl bg-white border-none text-brand-secondary hover:scale-110 transition-transform hover:bg-white">
+                            <Button 
+                                size="lg" 
+                                variant="secondary" 
+                                onClick={() => setShowFullMap(true)}
+                                className="h-16 w-16 rounded-full p-0 flex items-center justify-center shadow-xl bg-white border-none text-brand-secondary hover:scale-110 transition-transform hover:bg-white"
+                            >
                                 <Navigation size={32} fill="currentColor" />
                             </Button>
                         </div>
@@ -150,7 +159,7 @@ export const ActiveJobView = ({ activeJob, onUpdateStatus, setShowCustomerChat, 
                         <Button variant="cta" className="w-full py-4 text-lg shadow-lg shadow-orange-500/20 rounded-xl font-bold" onClick={handleStatusUpdate}>
                             {getStatusButtonText()}
                         </Button>
-                        <Button variant="danger" className="w-full shadow-sm py-4 rounded-xl bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold" onClick={() => alert("Report Issue")}>
+                        <Button variant="danger" className="w-full shadow-sm py-4 rounded-xl bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold" onClick={() => toast.success("Issue Reported!")}>
                             <XCircle size={20} className="mr-2" /> Report Issue
                         </Button>
                     </div>

@@ -12,6 +12,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'driver-requests', label: 'Driver Requests', icon: Users },
     { id: 'shipments', label: 'Shipments', icon: Package },
     { id: 'drivers', label: 'Drivers', icon: Truck },
     { id: 'users', label: 'Users', icon: Users },

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { X, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../../ui/Button';
 
@@ -10,17 +11,17 @@ export const ChangePasswordModal = ({ onClose }: { onClose: () => void }) => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (passData.new !== passData.confirm) {
-            alert("New passwords do not match!");
+            toast.error("New passwords do not match!");
             return;
         }
         if (passData.new.length < 6) {
-            alert("Password must be at least 6 characters long.");
+            toast.error("Password must be at least 6 characters long.");
             return;
         }
         setLoading(true);
         setTimeout(() => {
             setLoading(false);
-            alert("Password updated successfully!");
+            toast.success("Password updated successfully!");
             onClose();
         }, 1500);
     };
@@ -31,7 +32,7 @@ export const ChangePasswordModal = ({ onClose }: { onClose: () => void }) => {
 
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 p-6 animate-[scaleIn_0.2s_ease-out]">
               <div className="flex justify-between items-center mb-6">
                   <h3 className="font-bold text-xl text-slate-900 flex items-center gap-2">

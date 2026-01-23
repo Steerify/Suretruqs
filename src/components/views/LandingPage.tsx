@@ -4,6 +4,7 @@ import { Truck, ShieldCheck, MapPin, ArrowRight, Clock, Navigation, Globe, Packa
 import gsap from 'gsap';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link, useNavigate } from 'react-router-dom';
+import { Footer } from '../layout/Footer';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -416,7 +417,7 @@ export const LandingPage: React.FC = () => {
                      </div>
 
                       {/* Overlay Widget (Total Savings) */}
-                      <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 bg-[#0B1120] text-white p-3 sm:p-5 rounded-2xl shadow-2xl max-w-[140px] sm:max-w-[200px] animate-[float_5s_ease-in-out_infinite_1s] border border-white/10 z-20 hover:scale-105 transition-transform cursor-pointer">
+                      <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 bg-brand-primary text-white p-3 sm:p-5 rounded-2xl shadow-2xl max-w-[140px] sm:max-w-[200px] animate-[float_5s_ease-in-out_infinite_1s] border border-white/10 z-20 hover:scale-105 transition-transform cursor-pointer">
                          <div className="flex justify-between items-center mb-2 sm:mb-3">
                             <span className="text-[10px] sm:text-xs text-slate-400 font-medium">Savings</span>
                             <ArrowRight className="text-brand-orange -rotate-45" size={12} sm:size={16}/>
@@ -539,60 +540,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </div>
       
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-100 pt-24 pb-12 text-slate-900">
-         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-20">
-               <div className="col-span-2 lg:col-span-2">
-                  <div className="font-bold text-3xl flex items-center gap-2 mb-6">
-                     <div className="bg-brand-orange p-1.5 rounded-xl">
-                        <Truck size={24} strokeWidth={3} className="text-white" />
-                     </div>
-                     <span>SureTruqs<span className="text-brand-orange">.</span></span>
-                  </div>
-                  <p className="text-slate-500 max-w-sm mb-8">
-                     Connecting cargo to trucks instantly. The reliable logistics partner for African businesses.
-                  </p>
-                  <Button onClick={onContact} variant="cta" className="rounded-full bg-brand-orange text-white hover:bg-orange-600 font-bold px-8 shadow-lg shadow-orange-100">Contact Us</Button>
-               </div>
-               
-               <div>
-                  <h4 className="font-bold mb-6 text-slate-900">Company</h4>
-                  <ul className="space-y-4 text-slate-500 text-sm">
-                     <li><a href="#" className="hover:text-brand-orange transition-colors">About Us</a></li>
-                     <li><a href="#" className="hover:text-brand-orange transition-colors">Our Fleet</a></li>
-                     <li><a href="#" className="hover:text-brand-orange transition-colors">Careers</a></li>
-                  </ul>
-               </div>
-
-               <div>
-                  <h4 className="font-bold mb-6 text-slate-900">Services</h4>
-                  <ul className="space-y-4 text-slate-500 text-sm">
-                     <li><a href="#" className="hover:text-brand-orange transition-colors">Inter-State Haulage</a></li>
-                     <li><a href="#" className="hover:text-brand-orange transition-colors">Last-Mile Delivery</a></li>
-                     <li><a href="#" className="hover:text-brand-orange transition-colors">Corporate Logistics</a></li>
-                  </ul>
-               </div>
-
-               <div>
-                  <h4 className="font-bold mb-6 text-slate-900">Support</h4>
-                  <ul className="space-y-4 text-slate-500 text-sm">
-                     <li><a href="#" className="hover:text-brand-orange transition-colors">Help Center</a></li>
-                     <li><a href="#" className="hover:text-brand-orange transition-colors">Driver Support</a></li>
-                     <li><a href="#" className="hover:text-brand-orange transition-colors">Insurance Policy</a></li>
-                  </ul>
-               </div>
-            </div>
-
-            <div className="border-t border-slate-100 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
-               <p>&copy; 2024 SureTruqs. All rights reserved.</p>
-               <div className="flex gap-8 mt-4 md:mt-0">
-                  <a href="#" className="hover:text-brand-orange transition-colors">Privacy Policy</a>
-                  <a href="#" className="hover:text-brand-orange transition-colors">Terms of Use</a>
-               </div>
-            </div>
-         </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

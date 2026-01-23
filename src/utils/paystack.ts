@@ -19,8 +19,18 @@ export const initializePaystack = (config: any) => {
     email: config.email,
     amount: config.amount * 100, // to kobo
     ref: config.reference,
+    label: "SureTruqs Logistics - Wallet Deposit",
     onClose: config.onClose,
     callback: config.callback,
+    metadata: {
+      custom_fields: [
+        {
+          display_name: "Service Provider",
+          variable_name: "service_provider",
+          value: "SureTruqs Logistics"
+        }
+      ]
+    }
   });
   handler.openIframe();
 };

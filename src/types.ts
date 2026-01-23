@@ -2,7 +2,8 @@
 export enum UserRole {
   GUEST = 'GUEST',
   CUSTOMER = 'CUSTOMER',
-  DRIVER = 'DRIVER'
+  DRIVER = 'DRIVER',
+  ADMIN = 'ADMIN'
 }
 
 export enum ShipmentStatus {
@@ -23,6 +24,7 @@ export interface User {
   phone?: string;
   company?: string;
   onboarded?: boolean;
+  walletBalance: number;
 }
 
 export interface Driver {
@@ -60,6 +62,9 @@ export interface Shipment {
   cargoImage?: string; // New field for cargo image
   rating?: number;
   review?: string;
+  adminAssignedBy?: string; // Admin who assigned the driver
+  driverRequestedAt?: string; // When customer requested a driver
+  adminNotes?: string; // Admin notes about the assignment
 }
 
 export interface Transaction {

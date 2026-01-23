@@ -2,17 +2,17 @@ import React from 'react';
 import { Plus, Truck, MapPin, MessageSquare, Phone, Star, Package, Wallet, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
-import { Shipment, ShipmentStatus, Driver, User } from '../../../types';
+import { Shipment, ShipmentStatus, User } from '../../../types';
 
 interface DashboardHomeProps {
     user: User;
     shipments: Shipment[];
-    drivers: Driver[];
     activeShipment?: Shipment;
     setView: (view: any) => void;
     setShowDriverChat: (show: boolean) => void;
-    handleSelectDriver: (driver: Driver) => void;
     setSelectedHistoryItem: (shipment: Shipment) => void;
+    setShowFullMap: (show: boolean) => void;
+    walletBalance: number;
 }
 
 const getStatusLabel = (status: ShipmentStatus) => {
@@ -27,7 +27,7 @@ const getStatusLabel = (status: ShipmentStatus) => {
     }
 };
 
-export const DashboardHome = ({ user, shipments, drivers, activeShipment, setView, setShowDriverChat, handleSelectDriver, setSelectedHistoryItem }: DashboardHomeProps) => (
+export const DashboardHome = ({ user, shipments, activeShipment, setView, setShowDriverChat, setSelectedHistoryItem, setShowFullMap, walletBalance }: DashboardHomeProps) => (
       <div className="fade-in space-y-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
               <div>
@@ -84,38 +84,104 @@ export const DashboardHome = ({ user, shipments, drivers, activeShipment, setVie
                       </div>
 
                       <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                          <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-3">
-                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-blue-100 text-brand-primary`}>
-                                      D
-                                  </div>
-                                  <div>
-                                      <p className="font-bold text-slate-900 text-sm">Assigned Driver</p>
-                                      <div className="flex items-center gap-1">
-                                          <Star size={10} className="text-yellow-500 fill-current"/>
-                                          <span className="text-xs text-slate-600 font-bold">4.8</span>
+                          {/* Show driver info only during active delivery */}
+                          {activeShipment.driverId && [ShipmentStatus.ASSIGNED, ShipmentStatus.PICKED_UP, ShipmentStatus.IN_TRANSIT].includes(activeShipment.status) ? (
+                              <>
+                                  <div className="flex items-center justify-between mb-4">
+                                      <div className="flex items-center gap-3">
+                                          <div className="w-10 h-10 rounded-full bg-green-100 border-2 border-green-500 flex items-center justify-center font-bold text-sm text-green-700 relative">
+                                              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+                                              D
+                                          </div>
+                                          <div>
+                                              <p className="font-bold text-slate-900 text-sm">Driver En Route</p>
+                                              <div className="flex items-center gap-1">
+                                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                                                  <span className="text-xs text-green-600 font-bold">Active</span>
+                                              </div>
+                                          </div>
                                       </div>
                                   </div>
-                              </div>
-                              <div className="flex gap-2">
-                                  <button onClick={() => setShowDriverChat(true)} className="p-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:text-brand-primary hover:border-brand-primary transition-all shadow-sm">
-                                      <MessageSquare size={18}/>
+
+                                  {/* Driver arrival notification */}
+                                  {activeShipment.status === ShipmentStatus.PICKED_UP && (
+                                      <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-3 flex items-center gap-2">
+                                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                              </svg>
+                                          </div>
+                                          <div>
+                                              <p className="text-xs font-bold text-green-900">Driver has arrived!</p>
+                                              <p className="text-[10px] text-green-700">Package picked up and in transit</p>
+                                          </div>
+                                      </div>
+                                  )}
+
+                                  <div className="grid grid-cols-2 gap-2 mb-3">
+                                      <button 
+                                          onClick={() => setShowDriverChat(true)} 
+                                          className="p-3 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-xs"
+                                      >
+                                          <MessageSquare size={14}/>
+                                          Chat Driver
+                                      </button>
+                                      <button 
+                                          onClick={() => setShowFullMap(true)}
+                                          className="p-3 bg-white border-2 border-green-500 text-green-700 rounded-xl font-bold hover:bg-green-50 transition-all flex items-center justify-center gap-2 text-xs"
+                                      >
+                                          <MapPin size={14}/>
+                                          Track Live
+                                      </button>
+                                  </div>
+
+                                  <div className="bg-white p-3 rounded-xl border border-slate-100">
+                                      <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Estimated Arrival</p>
+                                      <p className="text-sm font-bold text-slate-900">
+                                          {activeShipment.status === ShipmentStatus.PICKED_UP ? '25 mins' : 
+                                           activeShipment.status === ShipmentStatus.IN_TRANSIT ? '15 mins' : 
+                                           'Arriving soon'}
+                                      </p>
+                                  </div>
+                              </>
+                          ) : (
+                              <>
+                                  {/* Before driver assignment or after delivery */}
+                                  <div className="flex items-center justify-between mb-4">
+                                      <div className="flex items-center gap-3">
+                                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-sm text-brand-primary">
+                                              AS
+                                          </div>
+                                          <div>
+                                              <p className="font-bold text-slate-900 text-sm">Admin Support</p>
+                                              <div className="flex items-center gap-1">
+                                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                                  <span className="text-xs text-slate-600 font-bold">Available</span>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+
+                                  <button 
+                                      onClick={() => setShowDriverChat(true)} 
+                                      className="w-full p-3 bg-brand-primary text-white rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 text-sm mb-3"
+                                  >
+                                      <MessageSquare size={16}/>
+                                      Contact Support
                                   </button>
-                                  <button className="p-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:text-green-600 hover:border-green-600 transition-all shadow-sm">
-                                      <Phone size={18}/>
-                                  </button>
-                              </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                              <div className="bg-white p-3 rounded-xl border border-slate-100">
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Vehicle</p>
-                                  <p className="text-xs font-bold text-slate-900">Box Truck • 5 Tons</p>
-                              </div>
-                              <div className="bg-white p-3 rounded-xl border border-slate-100">
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Est. Arrival</p>
-                                  <p className="text-xs font-bold text-slate-900">25 mins</p>
-                              </div>
-                          </div>
+
+                                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                                      <p className="text-xs font-bold text-blue-900 mb-1">
+                                          {activeShipment.status === ShipmentStatus.PENDING ? '⏳ Assigning Driver' : '✅ Delivery Status'}
+                                      </p>
+                                      <p className="text-[10px] text-blue-700">
+                                          {activeShipment.status === ShipmentStatus.PENDING 
+                                              ? 'Our team is finding the best driver for your delivery' 
+                                              : 'Your shipment has been processed'}
+                                      </p>
+                                  </div>
+                              </>
+                          )}
                       </div>
                   </div>
               </div>
@@ -137,7 +203,7 @@ export const DashboardHome = ({ user, shipments, drivers, activeShipment, setVie
                     <div className="p-1.5 bg-blue-50 text-brand-primary rounded-lg"><Wallet size={16}/></div>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Spent</p>
                  </div>
-                 <h3 className="text-4xl font-black text-slate-900">₦2.4M</h3>
+                 <h3 className="text-4xl font-black text-slate-900">₦{(walletBalance).toLocaleString()}</h3>
              </Card>
               <Card className="p-6">
                  <div className="flex items-center gap-2 mb-4">
@@ -180,33 +246,27 @@ export const DashboardHome = ({ user, shipments, drivers, activeShipment, setVie
               </Card>
               <Card className="border border-slate-200 shadow-sm">
                   <div className="flex justify-between items-center mb-6">
-                      <h3 className="font-bold text-lg text-slate-900">Active Drivers</h3>
-                      <button onClick={() => setView('find-drivers')} className="text-brand-primary text-sm font-bold hover:underline">Find Drivers</button>
+                      <h3 className="font-bold text-lg text-slate-900">Quick Actions</h3>
                   </div>
-                  <div className="space-y-4">
-                       {drivers.filter(d => d.isOnline).slice(0, 3).map(d => (
-                           <div key={d.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                               <div className="flex items-center gap-4">
-                                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${d.avatarColor}`}>
-                                       {d.name.charAt(0)}
-                                   </div>
-                                   <div>
-                                       <p className="font-bold text-slate-900 text-sm">{d.name}</p>
-                                       <div className="flex items-center gap-1.5 mt-0.5">
-                                           <span className="text-xs text-slate-500 font-medium">{d.vehicleType}</span>
-                                           <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                                           <span className="text-xs font-bold text-slate-700 flex items-center"><Star size={10} className="text-yellow-400 mr-0.5 fill-current"/> {d.rating}</span>
-                                       </div>
-                                   </div>
-                               </div>
-                               <Button size="sm" variant="secondary" onClick={() => handleSelectDriver(d)}>Book</Button>
-                           </div>
-                       ))}
-                       {drivers.filter(d => d.isOnline).length === 0 && (
-                           <div className="text-center py-8 text-slate-400">
-                               <p className="text-sm">No drivers online nearby</p>
-                           </div>
-                       )}
+                  <div className="space-y-3">
+                      <button 
+                          onClick={() => setView('new-shipment')} 
+                          className="w-full p-4 bg-gradient-to-r from-brand-primary to-blue-600 text-white rounded-2xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                      >
+                          <Plus size={18} />
+                          Create New Shipment
+                      </button>
+                      <button 
+                          onClick={() => setView('wallet')} 
+                          className="w-full p-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-white hover:shadow transition-all flex items-center justify-center gap-2"
+                      >
+                          <Wallet size={18} />
+                          Top Up Wallet
+                      </button>
+                      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mt-4">
+                          <p className="text-sm font-bold text-blue-900 mb-1">📋 Need a driver?</p>
+                          <p className="text-xs text-blue-700">Submit a shipment request and our admin team will assign the best driver for your delivery.</p>
+                      </div>
                   </div>
               </Card>
           </div>

@@ -28,7 +28,7 @@ export const HistoryDetailsModal = ({ shipment, onClose, onOpenChat, onRate }: H
     
     return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative z-10 p-0 animate-[scaleIn_0.2s_ease-out] overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div>

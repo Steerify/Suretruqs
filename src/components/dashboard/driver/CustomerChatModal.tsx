@@ -78,7 +78,7 @@ export const CustomerChatModal = ({ shipmentId, onClose }: { shipmentId: string,
                       <div key={m.id} className={`flex flex-col ${m.isMe ? 'items-end' : 'items-start'}`}>
                           <div className={`max-w-[85%] px-5 py-3.5 text-sm font-medium shadow-sm leading-relaxed transition-all ${
                               m.isMe 
-                              ? 'bg-slate-900 text-white rounded-[1.5rem] rounded-tr-none' 
+                              ? 'bg-brand-primary text-white rounded-[1.5rem] rounded-tr-none' 
                               : 'bg-white text-slate-700 border border-slate-100 rounded-[1.5rem] rounded-tl-none'
                           }`}>
                               <p className="break-words">{m.text}</p>

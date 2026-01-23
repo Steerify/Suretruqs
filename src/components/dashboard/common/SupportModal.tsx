@@ -4,7 +4,7 @@ import { Button } from '../../ui/Button';
 
 export const SupportModal = ({ onClose }: { onClose: () => void }) => (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
+       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 p-6 animate-[scaleIn_0.2s_ease-out]">
           <div className="flex justify-between items-center mb-6">
              <h3 className="font-bold text-xl text-slate-900 flex items-center gap-2">

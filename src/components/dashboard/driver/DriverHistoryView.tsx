@@ -15,7 +15,7 @@ export const DriverHistoryView = ({ jobHistory, setSelectedHistoryItem }: Driver
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
            <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-sm">
               <p className="text-xs text-slate-400 uppercase tracking-wide font-bold mb-2">Total Earned</p>
-              <p className="text-3xl font-bold text-slate-900">₦130k</p>
+              <p className="text-3xl font-bold text-slate-900">₦{(jobHistory.reduce((sum, job) => sum + (job.price || 0), 0) / 1000).toFixed(0)}k</p>
            </div>
            <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-sm">
               <p className="text-xs text-slate-400 uppercase tracking-wide font-bold mb-2">Completed</p>
