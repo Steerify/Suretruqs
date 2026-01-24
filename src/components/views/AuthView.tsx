@@ -106,7 +106,8 @@ export const AuthView: React.FC = () => {
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setIsLoading(true);
     try {
-        await googleLogin(credentialResponse.credential);
+        const role = authMode === 'SIGNUP' ? selectedRole : undefined;
+        await googleLogin(credentialResponse.credential, role);
     } catch (err: any) {
         toast.error(err.message || "Google Auth failed.");
     } finally {

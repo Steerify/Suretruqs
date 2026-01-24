@@ -5,7 +5,8 @@ import { useStore } from '../../context/StoreContext';
 import { UserRole } from '../../types';
 import { Button } from '../ui/Button';
 import api from '../../utils/api';
-import { CheckCircle2, Truck, User as UserIcon, Calendar, MapPin, FileText, CreditCard, ShieldCheck, Upload, ArrowRight, ArrowLeft, Package, Building, AlertCircle } from 'lucide-react';
+import { Country, State, City }  from 'country-state-city';
+import { CheckCircle2, Truck, User as UserIcon, Calendar, MapPin, FileText, CreditCard, ShieldCheck, Upload, ArrowRight, ArrowLeft, Package, Building, AlertCircle, Globe } from 'lucide-react';
 
 export const OnboardingView: React.FC = () => {
   const { currentUser, completeOnboarding } = useStore();
@@ -17,6 +18,10 @@ export const OnboardingView: React.FC = () => {
   // Form State for User Input
   const [formData, setFormData] = useState({
       address: currentUser?.address || '',
+      country: 'NG',
+      state: '',
+      city: '',
+      phoneCode: '234',
       phone: currentUser?.phone || '',
       nin: '',
       dob: '',
@@ -54,7 +59,10 @@ export const OnboardingView: React.FC = () => {
         if (!formData.dob) return "Please enter your date of birth.";
         if (formData.nin.length < 11) return "Please enter a valid 11-digit NIN.";
         if (formData.phone.length < 10) return "Please enter a valid phone number.";
-        if (!formData.address) return "Please enter your current address.";
+        if (!formData.address) return "Please enter your street address.";
+        if (!formData.country) return "Please select your country.";
+        if (!formData.state) return "Please select your state.";
+        if (!formData.city) return "Please select your city.";
       }
       if (step === 2) {
         if (!formData.vehicleMake) return "Please enter your vehicle make/model.";
@@ -69,8 +77,11 @@ export const OnboardingView: React.FC = () => {
       if (step === 1) {
         if (!formData.companyName) return "Please enter your company name.";
         if (!formData.businessType) return "Please select your industry.";
-        if (!formData.address) return "Please enter your business hub address.";
-        if (formData.phone.length < 10) return "Please enter a valid phone number.";
+        if (!formData.address) return "Please enter your street address.";
+        if (!formData.country) return "Please select your country.";
+        if (!formData.state) return "Please select your state.";
+        if (!formData.city) return "Please select your city.";
+        if (formData.phone.length < 5) return "Please enter a valid phone number.";
       }
       if (step === 2) {
         if (formData.cargoTypes.length === 0) return "Please select at least one cargo type.";
@@ -99,7 +110,14 @@ export const OnboardingView: React.FC = () => {
           vehicleType: isDriver ? formData.vehicleMake : undefined,
           plateNumber: isDriver ? formData.plateNumber : undefined,
           vehicleModel: isDriver ? formData.vehicleModel : undefined,
-          location: { address: formData.address, lat: 0, lng: 0 },
+          location: { 
+            address: formData.address, 
+            country: Country.getCountryByCode(formData.country)?.name,
+            state: State.getStateByCodeAndCountry(formData.state, formData.country)?.name,
+            city: formData.city,
+            lat: 0, 
+            lng: 0 
+          },
           documents: documents
         });
         
@@ -174,6 +192,26 @@ export const OnboardingView: React.FC = () => {
         ? prev.cargoTypes.filter(c => c !== cargo)
         : [...prev.cargoTypes, cargo]
     }));
+  };
+
+  const countries = Country.getAllCountries();
+  const states = formData.country ? State.getStatesOfCountry(formData.country) : [];
+  const cities = formData.state ? City.getCitiesOfState(formData.country, formData.state) : [];
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const countryCode = e.target.value;
+      const countryData = Country.getCountryByCode(countryCode);
+      setFormData(prev => ({ 
+          ...prev, 
+          country: countryCode, 
+          state: '', 
+          city: '',
+          phoneCode: countryData?.phonecode || '234'
+      }));
+  };
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setFormData(prev => ({ ...prev, state: e.target.value, city: '' }));
   };
 
   const ProgressBar = () => (
@@ -284,7 +322,8 @@ export const OnboardingView: React.FC = () => {
                                 <Calendar size={18} className="absolute left-3 top-3 text-slate-400"/>
                                 <input 
                                   type="date" 
-                                  className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium" 
+                                  style={{ colorScheme: 'light' }}
+                                  className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium text-slate-700 placeholder-slate-400" 
                                   value={formData.dob}
                                   onChange={(e) => updateForm('dob', e.target.value)}
                                 />
@@ -303,13 +342,60 @@ export const OnboardingView: React.FC = () => {
                                 />
                               </div>
                             </div>
+                            </div>
+                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-1.5">
+                                   <label className="block text-sm font-bold text-slate-700">Country</label>
+                                   <div className="relative">
+                                      <Globe size={18} className="absolute left-3 top-3 text-slate-400"/>
+                                      <select 
+                                        className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-700 font-medium appearance-none"
+                                        value={formData.country}
+                                        onChange={handleCountryChange}
+                                      >
+                                          <option value="">Select Country</option>
+                                          {countries.map((c) => (
+                                              <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
+                                          ))}
+                                      </select>
+                                   </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                   <label className="block text-sm font-bold text-slate-700">State / Region</label>
+                                   <select 
+                                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-700 font-medium appearance-none disabled:opacity-50"
+                                      value={formData.state}
+                                      onChange={handleStateChange}
+                                      disabled={!formData.country}
+                                    >
+                                        <option value="">Select State</option>
+                                        {states.map((s) => (
+                                            <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                   <label className="block text-sm font-bold text-slate-700">City</label>
+                                   <select 
+                                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-700 font-medium appearance-none disabled:opacity-50"
+                                      value={formData.city}
+                                      onChange={(e) => updateForm('city', e.target.value)}
+                                      disabled={!formData.state}
+                                    >
+                                        <option value="">Select City</option>
+                                        {cities.map((c) => (
+                                            <option key={c.name} value={c.name}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
                             <div className="md:col-span-2">
-                               <label className="block text-sm font-bold text-slate-700 mb-1.5">Current Address</label>
+                               <label className="block text-sm font-bold text-slate-700 mb-1.5">Street Address</label>
                                <div className="relative">
                                  <MapPin size={18} className="absolute left-3 top-3 text-slate-400"/>
                                  <input 
                                      type="text" 
-                                     placeholder="Street, City, State" 
+                                     placeholder="Street, Building, Flat" 
                                      className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium" 
                                      value={formData.address}
                                      onChange={(e) => updateForm('address', e.target.value)}
@@ -318,15 +404,31 @@ export const OnboardingView: React.FC = () => {
                             </div>
                             <div className="md:col-span-2">
                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Phone Number</label>
-                               <div className="relative">
-                                 <FileText size={18} className="absolute left-3 top-3 text-slate-400"/>
-                                 <input 
-                                     type="tel" 
-                                     placeholder="+234 810 000 0000" 
-                                     className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium" 
-                                     value={formData.phone}
-                                     onChange={(e) => updateForm('phone', e.target.value)}
-                                 />
+                               <div className="flex gap-2">
+                                 <div className="w-1/3 min-w-[100px] relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span className="text-slate-500 font-bold text-xs">+</span>
+                                    </div>
+                                    <select
+                                        className="w-full pl-6 pr-2 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-900 font-bold appearance-none"
+                                        value={formData.phoneCode}
+                                        onChange={(e) => updateForm('phoneCode', e.target.value)}
+                                    >
+                                        {countries.map(c => (
+                                            <option key={c.isoCode} value={c.phonecode}>{c.isoCode} (+{c.phonecode})</option>
+                                        ))}
+                                    </select>
+                                 </div>
+                                 <div className="relative flex-1">
+                                   <FileText size={18} className="absolute left-3 top-3 text-slate-400"/>
+                                   <input 
+                                       type="tel" 
+                                       placeholder="810 000 0000" 
+                                       className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium" 
+                                       value={formData.phone}
+                                       onChange={(e) => updateForm('phone', e.target.value)}
+                                   />
+                                 </div>
                                </div>
                             </div>
                           </div>
@@ -459,30 +561,95 @@ export const OnboardingView: React.FC = () => {
                                   <option>Tech & Electronics</option>
                                </select>
                             </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-1.5">
+                                   <label className="block text-sm font-bold text-slate-700">Country</label>
+                                   <div className="relative">
+                                      <Globe size={18} className="absolute left-3 top-3 text-slate-400"/>
+                                      <select 
+                                        className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-700 font-medium appearance-none"
+                                        value={formData.country}
+                                        onChange={handleCountryChange}
+                                      >
+                                          <option value="">Select Country</option>
+                                          {countries.map((c) => (
+                                              <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
+                                          ))}
+                                      </select>
+                                   </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                   <label className="block text-sm font-bold text-slate-700">State / Region</label>
+                                   <select 
+                                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-700 font-medium appearance-none disabled:opacity-50"
+                                      value={formData.state}
+                                      onChange={handleStateChange}
+                                      disabled={!formData.country}
+                                    >
+                                        <option value="">Select State</option>
+                                        {states.map((s) => (
+                                            <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                   <label className="block text-sm font-bold text-slate-700">City</label>
+                                   <select 
+                                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-700 font-medium appearance-none disabled:opacity-50"
+                                      value={formData.city}
+                                      onChange={(e) => updateForm('city', e.target.value)}
+                                      disabled={!formData.state}
+                                    >
+                                        <option value="">Select City</option>
+                                        {cities.map((c) => (
+                                            <option key={c.name} value={c.name}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
                             <div>
                                <label className="block text-sm font-bold text-slate-700 mb-1.5">HQ Address / Primary Hub</label>
                                <div className="relative">
                                  <MapPin size={18} className="absolute left-3 top-3 text-slate-400"/>
                                  <input 
                                     type="text" 
-                                    placeholder="e.g. 42 Warehouse Avenue, Apapa" 
+                                    placeholder="Street Address, Building No." 
                                     className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium" 
                                     value={formData.address}
                                     onChange={(e) => updateForm('address', e.target.value)}
                                  />
                                </div>
                             </div>
+
                             <div>
                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Phone Number</label>
-                               <div className="relative">
-                                 <FileText size={18} className="absolute left-3 top-3 text-slate-400"/>
-                                 <input 
-                                    type="tel" 
-                                    placeholder="+234 810 000 0000" 
-                                    className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium" 
-                                    value={formData.phone}
-                                    onChange={(e) => updateForm('phone', e.target.value)}
-                                 />
+                               <div className="flex gap-2">
+                                 <div className="w-1/3 min-w-[100px] relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span className="text-slate-500 font-bold text-xs">+</span>
+                                    </div>
+                                    <select
+                                        className="w-full pl-6 pr-2 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-900 font-bold appearance-none"
+                                        value={formData.phoneCode}
+                                        onChange={(e) => updateForm('phoneCode', e.target.value)}
+                                    >
+                                        {countries.map(c => (
+                                            <option key={c.isoCode} value={c.phonecode}>{c.isoCode} (+{c.phonecode})</option>
+                                        ))}
+                                    </select>
+                                 </div>
+                                 <div className="relative flex-1">
+                                    <FileText size={18} className="absolute left-3 top-3 text-slate-400"/>
+                                    <input 
+                                       type="tel" 
+                                       placeholder="810 000 0000" 
+                                       className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium" 
+                                       value={formData.phone}
+                                       onChange={(e) => updateForm('phone', e.target.value)}
+                                    />
+                                 </div>
                                </div>
                             </div>
                          </div>

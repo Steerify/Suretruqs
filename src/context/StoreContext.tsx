@@ -29,7 +29,7 @@ interface StoreContextType {
   // Actions
   login: (email: string, password: string) => Promise<void>;
   signup: (userData: any) => Promise<void>;
-  googleLogin: (token: string) => Promise<void>;
+  googleLogin: (token: string, role?: UserRole) => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (data: any) => Promise<void>;
@@ -320,9 +320,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  const googleLogin = async (token: string) => {
+  const googleLogin = async (token: string, role?: UserRole) => {
     try {
-        const response = await api.post('/auth/google', { token });
+        const response = await api.post('/auth/google', { token, role });
         localStorage.setItem('token', response.data.token);
         setCurrentUser(response.data.user);
         await fetchAllUserData();
