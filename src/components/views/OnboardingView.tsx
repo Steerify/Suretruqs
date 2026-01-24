@@ -432,7 +432,7 @@ export const OnboardingView: React.FC = () => {
                                </div>
                             </div>
                           </div>
-                        </div>
+
                       )}
 
                       {step === 2 && (
@@ -442,14 +442,25 @@ export const OnboardingView: React.FC = () => {
                           </h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                              <label className="block text-sm font-bold text-slate-700 mb-1.5">Vehicle Make/Model</label>
-                              <input 
-                                type="text" 
-                                placeholder="e.g. Mercedes Benz Actros" 
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium" 
+                              <label className="block text-sm font-bold text-slate-700 mb-1.5">Vehicle Type</label>
+                              <select 
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-700 font-medium transition-all"
                                 value={formData.vehicleMake}
                                 onChange={(e) => updateForm('vehicleMake', e.target.value)}
-                              />
+                              >
+                                <option value="">Select Vehicle Type</option>
+                                <option value="Mini Truck / Pickup">Mini Truck / Pickup</option>
+                                <option value="Van / Bus">Van / Bus</option>
+                                <option value="Box Truck (Small)">Box Truck (Small)</option>
+                                <option value="Box Truck (Medium)">Box Truck (Medium)</option>
+                                <option value="Box Truck (Large)">Box Truck (Large)</option>
+                                <option value="Flatbed Truck">Flatbed Truck</option>
+                                <option value="Container Carrier (20ft)">Container Carrier (20ft)</option>
+                                <option value="Container Carrier (40ft)">Container Carrier (40ft)</option>
+                                <option value="Refrigerated Truck">Refrigerated Truck</option>
+                                <option value="Tanker">Tanker</option>
+                                <option value="Tipper / Dump Truck">Tipper / Dump Truck</option>
+                              </select>
                             </div>
                             <div>
                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Plate Number</label>
@@ -530,6 +541,7 @@ export const OnboardingView: React.FC = () => {
                  {!isDriver && (
                     <div className="min-h-[320px]">
                         {step === 1 && (
+
                          <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
                             <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                <Building className="text-brand-secondary" /> Business Identity
@@ -608,7 +620,6 @@ export const OnboardingView: React.FC = () => {
                                     </select>
                                 </div>
                             </div>
-
                             <div>
                                <label className="block text-sm font-bold text-slate-700 mb-1.5">HQ Address / Primary Hub</label>
                                <div className="relative">
@@ -622,7 +633,6 @@ export const OnboardingView: React.FC = () => {
                                  />
                                </div>
                             </div>
-
                             <div>
                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Phone Number</label>
                                <div className="flex gap-2">

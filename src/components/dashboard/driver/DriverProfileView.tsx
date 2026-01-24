@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Star, MapPin, Mail, Power, Info, ShieldCheck, FileText, Eye, AlertCircle, CheckCircle2, Camera } from 'lucide-react';
-import { User, Shipment } from '../../../types';
+import { User, Shipment, ShipmentStatus } from '../../../types';
 
 interface DriverProfileViewProps {
     user: User;
@@ -81,7 +81,9 @@ export const DriverProfileView = ({ user, isOnline, setIsOnline, jobHistory, set
                    <div className="grid grid-cols-2 gap-4">
                       <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Total Earnings</p>
-                         <p className="text-2xl font-bold text-slate-900">₦2.4M</p>
+                         <p className="text-2xl font-bold text-slate-900">
+                            ₦{jobHistory.filter(j => j.status === ShipmentStatus.DELIVERED).reduce((sum, j) => sum + (j.price || 0), 0).toLocaleString()}
+                         </p>
                       </div>
                       <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Total Trips</p>
