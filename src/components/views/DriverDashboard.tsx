@@ -41,7 +41,7 @@ export const DriverDashboard: React.FC = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<Shipment | null>(null);
-  const [viewingDoc, setViewingDoc] = useState<string | null>(null);
+  const [viewingDoc, setViewingDoc] = useState<{ name: string; url?: string } | null>(null);
   const [showBankModal, setShowBankModal] = useState(false);
   
   // Chat States

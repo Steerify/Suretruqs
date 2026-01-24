@@ -9,10 +9,14 @@ interface DriverProfileViewProps {
     isOnline: boolean;
     setIsOnline: (online: boolean) => void;
     jobHistory: Shipment[]; // used for stats
-    setViewingDoc: (docName: string) => void;
+    setViewingDoc: (doc: { name: string; url?: string } | null) => void;
 }
 
-export const DriverProfileView = ({ user, isOnline, setIsOnline, jobHistory, setViewingDoc }: DriverProfileViewProps) => (
+export const DriverProfileView = ({ user, isOnline, setIsOnline, jobHistory, setViewingDoc }: DriverProfileViewProps) => {
+   // Get document URLs from user data (assuming documents are stored in user object)
+   const userDocuments = (user as any)?.documents || {};
+   
+   return (
      <div className="p-4 md:p-8 pb-24 fade-up w-full max-w-[1920px] mx-auto">
         <div className="fade-up w-full space-y-8 pb-20">
             {/* Header Profile Card - Light Modern layout */}
@@ -111,7 +115,7 @@ export const DriverProfileView = ({ user, isOnline, setIsOnline, jobHistory, set
                    ].map((doc, i) => (
                       <div 
                         key={i} 
-                        onClick={() => setViewingDoc(doc.name)}
+                        onClick={() => setViewingDoc({ name: doc.name, url: userDocuments[doc.name] })}
                         className={`border rounded-2xl p-5 flex flex-col justify-between h-36 transition-all hover:shadow-md cursor-pointer group ${doc.warning ? 'bg-orange-50 border-orange-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
                       >
                          <div className="flex justify-between items-start">
@@ -133,4 +137,5 @@ export const DriverProfileView = ({ user, isOnline, setIsOnline, jobHistory, set
             </div>
         </div>
      </div>
-);
+   );
+};
