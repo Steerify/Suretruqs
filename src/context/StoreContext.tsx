@@ -125,11 +125,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const newSocket = io(SOCKET_URL, {
-      auth: { token }
+      auth: { token: localStorage.getItem('token') },
+      reconnection: true,
+      reconnectionAttempts: 5,
+      transports: ['websocket', 'polling']
     });
+
     setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      console.log('Socket connected:', newSocket.id);
+    });
+
+    newSocket.on('connect_error', (err) => {
+      console.warn('Socket connection error:', err.message);
+      // Optional: attempt to refresh token or redirect
+    });
 
     newSocket.on('new_message', (data: any) => {
       setMessages(prev => ({
@@ -232,7 +244,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return () => {
       newSocket.disconnect();
     };
-  }, [currentUser?.id]);
+  }, []);
 
   // Fetch historical messages for shipments (Optimized: Single API Call)
   useEffect(() => {

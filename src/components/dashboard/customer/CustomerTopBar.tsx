@@ -1,6 +1,8 @@
 import React from 'react';
 import { Package, LayoutDashboard, Truck, Wallet, History, Settings, Bell, ChevronRight, LogOut } from 'lucide-react';
 import { User } from '../../../types';
+import { useStore } from '../../../context/StoreContext';
+
 
 interface CustomerTopBarProps {
     user: User;
