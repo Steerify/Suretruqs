@@ -13,12 +13,11 @@ interface DriverProfileViewProps {
 }
 
 export const DriverProfileView = ({ user, isOnline, setIsOnline, jobHistory, setViewingDoc }: DriverProfileViewProps) => {
-   // Get document URLs from user data (assuming documents are stored in user object)
-   const userDocuments = (user as any)?.documents || {};
-   
-   // Debug: Log what documents we have
-   console.log('User object:', user);
-   console.log('User documents:', userDocuments);
+   // Get document URLs from user data - check multiple possible locations
+   const userDocuments = (user as any)?.documents || 
+                        (user as any)?.docs || 
+                        (user as any)?.uploadedDocuments || 
+                        {};
    
    return (
      <div className="p-4 md:p-8 pb-24 fade-up w-full max-w-[1920px] mx-auto">
