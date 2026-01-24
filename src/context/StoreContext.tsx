@@ -14,6 +14,7 @@ interface StoreContextType {
   shipments: Shipment[];
   drivers: Driver[];
   customers: User[];
+  allUsers: User[];
   incomingJob: Shipment | null;
   messages: Record<string, ChatMessage[]>;
   isTyping: Record<string, boolean>; // shipmentId -> boolean
@@ -52,6 +53,7 @@ interface StoreContextType {
   fetchNotifications: () => Promise<void>;
   markNotificationAsRead: (id: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -61,6 +63,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [customers, setCustomers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [incomingJob, setIncomingJob] = useState<Shipment | null>(null);
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [isTyping, setIsTyping] = useState<Record<string, boolean>>({});
@@ -99,10 +102,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setDrivers(driversRes.data);
       }
 
-      // Fetch customers (if admin)
+      // Fetch customers and all users (if admin)
       if (userRes.data.role === UserRole.ADMIN) {
-         const customersRes = await api.get('/users'); 
-         setCustomers(customersRes.data.filter((u: User) => u.role === UserRole.CUSTOMER));
+         const usersRes = await api.get('/users'); 
+         console.log('Fetched All Users:', usersRes.data.length);
+         setAllUsers(usersRes.data);
+         setCustomers(usersRes.data.filter((u: User) => u.role === UserRole.CUSTOMER));
       }
 
       await fetchWalletData();
@@ -262,6 +267,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             chatData[sId].unshift({
                 id: m._id,
                 senderId: m.senderId._id || m.senderId,
+                senderName: m.senderId.name || 'User',
                 shipmentId: m.shipmentId,
                 text: m.text,
                 timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -546,6 +552,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       shipments,
       drivers,
       customers,
+      allUsers,
       incomingJob,
       messages,
       isTyping,
@@ -592,7 +599,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       },
       fetchNotifications,
       markNotificationAsRead,
-      markAllNotificationsAsRead
+      markAllNotificationsAsRead,
+      refreshData: fetchAllUserData
     }}>
       {children}
     </StoreContext.Provider>

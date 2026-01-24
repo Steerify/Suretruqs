@@ -95,6 +95,7 @@ export interface DriverStats {
 export interface ChatMessage {
   id: string;
   senderId: string;
+  senderName?: string;
   shipmentId: string;
   text: string;
   timestamp: string;

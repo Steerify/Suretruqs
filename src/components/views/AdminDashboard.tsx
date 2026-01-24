@@ -16,11 +16,14 @@ import { AdminChatModal } from '../dashboard/admin/AdminChatModal';
 import { FullMapModal } from '../dashboard/common/FullMapModal';
 import toast from 'react-hot-toast';
 import { useStore } from '../../context/StoreContext';
+import { AdminUsersView } from '../dashboard/admin/AdminUsersView';
+import { AdminFinancesView } from '../dashboard/admin/AdminFinancesView';
+import { AdminSupportView } from '../dashboard/admin/AdminSupportView';
 
 export const AdminDashboard: React.FC = () => {
     const { 
-        logout, shipments, drivers, customers, currentUser, 
-        assignDriverToShipment, adminNotifications 
+        logout, shipments, drivers, customers, allUsers, currentUser, 
+        assignDriverToShipment, adminNotifications, refreshData 
     } = useStore();
     
     const [activeTab, setActiveTab] = useState('overview');
@@ -91,31 +94,31 @@ export const AdminDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Revenue Chart */}
-                <Card className="lg:col-span-2 p-8">
+                <Card className="lg:col-span-2 p-8 border border-slate-100 shadow-sm">
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h3 className="text-xl font-black text-slate-900">Revenue Stream</h3>
                             <p className="text-sm text-slate-500 font-medium">Weekly financial performance overview</p>
                         </div>
-                        <Button variant="ghost" className="text-brand-primary text-xs font-black">VIEW REPORT</Button>
+                        <Button variant="ghost" className="text-brand-secondary text-xs font-black uppercase tracking-widest">VIEW REPORT</Button>
                     </div>
                     <div className="h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={chartData}>
                                 <defs>
                                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
-                                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b', fontWeight: 600}} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b', fontWeight: 600}} tickFormatter={(v) => `₦${v/1000}k`} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b', fontWeight: 800}} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b', fontWeight: 800}} tickFormatter={(v) => `₦${v/1000}k`} />
                                 <Tooltip 
                                     contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px'}}
                                     itemStyle={{fontWeight: 800, color: '#0f172a'}}
                                 />
-                                <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
+                                <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -153,14 +156,14 @@ export const AdminDashboard: React.FC = () => {
     );
 
     const ShipmentsTab = () => (
-        <Card noPadding className="admin-tab-content overflow-hidden border-none shadow-xl shadow-slate-200/50">
-            <div className="p-6 bg-brand-primary text-white flex justify-between items-center">
+        <Card noPadding className="admin-tab-content overflow-hidden border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem]">
+            <div className="p-8 bg-brand-dark text-white flex justify-between items-center">
                 <div>
-                    <h3 className="text-xl font-black tracking-tight">Global Logistics Pipeline</h3>
-                    <p className="text-xs text-slate-400 font-medium">Monitoring {shipments.length} total shipments across the network</p>
+                    <h3 className="text-2xl font-black tracking-tight">Global Logistics Pipeline</h3>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Monitoring {shipments.length} total shipments across the network</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="secondary" className="bg-white/10 border-white/10 text-white hover:bg-white/20 rounded-xl" onClick={() => setShowGlobalMap(true)}>
+                    <Button variant="secondary" className="bg-white/10 border-white/10 text-white hover:bg-white/20 px-6 rounded-2xl" onClick={() => setShowGlobalMap(true)}>
                         <MapPin size={16} className="mr-2" /> Live Map
                     </Button>
                 </div>
@@ -227,9 +230,9 @@ export const AdminDashboard: React.FC = () => {
     );
 
     return (
-        <div className="flex h-screen bg-[#F8FAFC] font-sans selection:bg-brand-primary/10 overflow-hidden" ref={containerRef}>
-            {/* Professional Admin Sidebar */}
-            <div className="w-80 bg-brand-primary text-white flex flex-col p-8 border-r border-white/5 relative z-20">
+        <div className="flex h-screen bg-[#F8FAFC] font-sans selection:bg-brand-secondary/10 overflow-hidden" ref={containerRef}>
+            {/* Professional Admin Sidebar - Switched to brand-dark for better contrast and pallet consistency */}
+            <div className="w-80 bg-brand-dark text-white flex flex-col p-8 border-r border-white/5 relative z-20">
                 <div className="flex items-center gap-3 mb-12">
                     <div className="bg-brand-orange p-2.5 rounded-2xl shadow-lg shadow-orange-500/20">
                         <Truck size={24} className="text-white" strokeWidth={3} />
@@ -254,7 +257,7 @@ export const AdminDashboard: React.FC = () => {
                             onClick={() => setActiveTab(item.id)}
                             className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 font-bold text-sm ${
                                 activeTab === item.id 
-                                ? 'bg-brand-primary text-white shadow-xl shadow-blue-500/20' 
+                                ? 'bg-brand-orange text-white shadow-xl shadow-orange-500/20' 
                                 : 'text-slate-400 hover:text-white hover:bg-white/5'
                             }`}
                         >
@@ -330,7 +333,7 @@ export const AdminDashboard: React.FC = () => {
                                             <Bell size={16} className="text-brand-orange" />
                                             Live Notifications
                                         </h4>
-                                        <button className="text-[10px] font-black text-brand-primary uppercase tracking-widest hover:underline">Clear all</button>
+                                        <button className="text-[10px] font-black text-brand-secondary uppercase tracking-widest hover:underline">Clear all</button>
                                     </div>
                                     <div className="max-h-[400px] overflow-y-auto">
                                         {adminNotifications.length > 0 ? adminNotifications.map((n, i) => (
@@ -382,14 +385,32 @@ export const AdminDashboard: React.FC = () => {
                                 />
                             </div>
                         )}
-                        {['overview', 'shipments', 'driver-requests'].indexOf(activeTab) === -1 && (
-                            <div className="flex flex-col items-center justify-center h-[600px] text-slate-400 border-4 border-dashed border-slate-200 rounded-[3rem] bg-white group hover:border-brand-primary/20 transition-all duration-700">
+                        {activeTab === 'users' && (
+                            <AdminUsersView 
+                                users={allUsers} 
+                                drivers={drivers} 
+                                onDeleteUser={() => refreshData()} 
+                            />
+                        )}
+                        {activeTab === 'finances' && <AdminFinancesView />}
+                        {activeTab === 'support' && (
+                            <AdminSupportView 
+                                onOpenChat={(sId, uId, uName, role) => setChatModal({ 
+                                    shipmentId: sId, 
+                                    chatWith: role, 
+                                    recipientName: uName, 
+                                    recipientId: uId 
+                                })} 
+                            />
+                        )}
+                        {['overview', 'shipments', 'driver-requests', 'users', 'finances', 'support'].indexOf(activeTab) === -1 && (
+                            <div className="flex flex-col items-center justify-center h-[600px] text-slate-400 border-4 border-dashed border-slate-200 rounded-[3rem] bg-white group hover:border-brand-secondary/20 transition-all duration-700">
                                 <div className="p-8 bg-slate-50 rounded-[2.5rem] mb-6 group-hover:rotate-12 transition-transform duration-500">
-                                    <Activity size={64} className="text-slate-200 group-hover:text-brand-primary/20" />
+                                    <Activity size={64} className="text-slate-200 group-hover:text-brand-secondary/20" />
                                 </div>
                                 <h3 className="text-xl font-black text-slate-800 tracking-tight">Accessing Secure Module...</h3>
                                 <p className="text-sm font-bold text-slate-500 mt-2">The {activeTab} control plane is currently under maintenance.</p>
-                                <Button variant="secondary" className="mt-8 rounded-2xl bg-brand-primary text-white px-8 h-12">
+                                <Button variant="secondary" className="mt-8 rounded-2xl bg-brand-secondary text-white px-8 h-12 border-none">
                                     <RefreshCcw size={16} className="mr-2" /> Sync Module
                                 </Button>
                             </div>

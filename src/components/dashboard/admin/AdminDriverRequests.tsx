@@ -80,7 +80,7 @@ export const AdminDriverRequests: React.FC<AdminDriverRequestsProps> = ({
                             </Button>
                             {shipment.status === ShipmentStatus.PENDING && (
                                 <Button 
-                                    className="rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest text-[10px] px-8 py-4 h-auto shadow-lg shadow-blue-500/20"
+                                    className="rounded-xl bg-brand-secondary text-white font-black uppercase tracking-widest text-[10px] px-8 py-4 h-auto shadow-lg shadow-blue-500/20 border-none"
                                     onClick={() => setSelectedShipment(selectedShipment === shipment.id ? null : shipment.id)}
                                 >
                                     {selectedShipment === shipment.id ? 'Close Panel' : 'Assign Driver'}
@@ -147,7 +147,7 @@ export const AdminDriverRequests: React.FC<AdminDriverRequestsProps> = ({
                                                 key={d.id}
                                                 onClick={() => setSelectedDriver(d.id)}
                                                 className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between ${
-                                                    selectedDriver === d.id ? 'bg-brand-primary border-brand-primary text-white shadow-lg' : 'bg-white border-slate-100 text-slate-700 hover:border-slate-300'
+                                                    selectedDriver === d.id ? 'bg-brand-secondary border-brand-secondary text-white shadow-lg' : 'bg-white border-slate-100 text-slate-700 hover:border-slate-300'
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -189,7 +189,7 @@ export const AdminDriverRequests: React.FC<AdminDriverRequestsProps> = ({
                                             setSelectedShipment(null);
                                             toast.success("Driver assigned successfully!");
                                         }}
-                                        className="w-full py-4 rounded-2xl bg-brand-primary text-white font-black uppercase tracking-widest text-[10px] shadow-xl shadow-blue-500/20"
+                                        className="w-full py-4 rounded-2xl bg-brand-secondary text-white font-black uppercase tracking-widest text-[10px] shadow-xl shadow-blue-500/20 border-none"
                                     >
                                         Execute Dispatch Protocol
                                     </Button>

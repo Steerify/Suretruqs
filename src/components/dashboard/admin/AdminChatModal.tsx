@@ -43,7 +43,7 @@ export const AdminChatModal: React.FC<AdminChatModalProps> = ({
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
       <div className="bg-white w-full md:max-w-md h-[85vh] md:h-[600px] md:rounded-2xl rounded-t-2xl shadow-xl relative z-10 flex flex-col overflow-hidden animate-[slideUp_0.3s_ease-out]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-brand-primary to-blue-600 p-4 flex items-center justify-between text-white">
+        <div className="bg-gradient-to-r from-brand-secondary to-blue-700 p-4 flex items-center justify-between text-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center font-semibold text-sm">
               {recipientName.charAt(0)}
@@ -81,7 +81,7 @@ export const AdminChatModal: React.FC<AdminChatModalProps> = ({
             <div key={m.id} className={`flex ${m.isMe ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[75%] px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
                 m.isMe 
-                  ? 'bg-gradient-to-br from-brand-primary to-blue-600 text-white rounded-2xl rounded-br-md' 
+                  ? 'bg-gradient-to-br from-brand-secondary to-blue-700 text-white rounded-2xl rounded-br-md' 
                   : 'bg-white text-slate-800 rounded-2xl rounded-bl-md border border-slate-200'
               }`}>
                 {!m.isMe && (
@@ -110,7 +110,7 @@ export const AdminChatModal: React.FC<AdminChatModalProps> = ({
         <form onSubmit={sendMsg} className="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
           <input 
             type="text" 
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 focus:bg-white focus:border-brand-primary outline-none text-sm transition-all"
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 focus:bg-white focus:border-brand-secondary outline-none text-sm transition-all"
             placeholder={`Message ${recipientName}...`}
             value={msgText}
             onChange={(e) => setMsgText(e.target.value)}
@@ -118,7 +118,7 @@ export const AdminChatModal: React.FC<AdminChatModalProps> = ({
           <button 
             type="submit" 
             disabled={!msgText.trim()} 
-            className="bg-gradient-to-r from-brand-primary to-blue-600 text-white p-2.5 rounded-full hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+            className="bg-gradient-to-r from-brand-secondary to-blue-700 text-white p-2.5 rounded-full hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
           >
             <Send size={18}/>
           </button>

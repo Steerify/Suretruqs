@@ -8,7 +8,7 @@ export const NewShipmentView = ({ onBack, onCreate }: { onBack: () => void, onCr
     const [formData, setFormData] = useState({
         pickup: '',
         dropoff: '',
-        vehicleType: 'Box Truck',
+        vehicleType: 'Tanker Truck',
         cargoType: 'General Goods',
         weight: '100kg'
     });
@@ -25,9 +25,10 @@ export const NewShipmentView = ({ onBack, onCreate }: { onBack: () => void, onCr
                 vehicleType: formData.vehicleType,
                 cargoType: formData.cargoType,
                 weight: formData.weight,
-                price: formData.vehicleType === 'Box Truck' ? 45000 : 
-                       formData.vehicleType === 'Flatbed Truck' ? 65000 : 
-                       formData.vehicleType === 'Mini Van' ? 25000 : 8000,
+                price: formData.vehicleType === 'Tanker Truck' ? 120000 : 
+                       formData.vehicleType === 'Box Truck' ? 85000 : 
+                       formData.vehicleType === 'Flatbed Truck' ? 95000 : 
+                       formData.vehicleType === 'Refrigerated Truck' ? 150000 : 100000,
                 driverRequestedAt: new Date().toISOString() // Mark as driver requested
             });
             setCreating(false);
@@ -65,10 +66,11 @@ export const NewShipmentView = ({ onBack, onCreate }: { onBack: () => void, onCr
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Vehicle Type</label>
                              <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all text-slate-900 font-medium" value={formData.vehicleType} onChange={e => setFormData({...formData, vehicleType: e.target.value})}>
+                                <option>Tanker Truck</option>
                                 <option>Box Truck</option>
                                 <option>Flatbed Truck</option>
-                                <option>Mini Van</option>
-                                <option>Motorbike</option>
+                                <option>Container Truck</option>
+                                <option>Refrigerated Truck</option>
                              </select>
                         </div>
                         <div>
