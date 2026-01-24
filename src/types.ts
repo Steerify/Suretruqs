@@ -75,12 +75,15 @@ export interface Shipment {
 
 export interface Transaction {
   id: string;
+  _id?: string;
   type: 'CREDIT' | 'DEBIT';
   amount: number;
   date: string;
+  createdAt?: string;
   description: string;
   status: 'SUCCESS' | 'PENDING' | 'FAILED';
   reference: string;
+  userId?: any;
 }
 
 export interface DriverStats {
