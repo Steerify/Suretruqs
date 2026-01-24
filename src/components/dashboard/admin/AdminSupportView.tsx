@@ -86,7 +86,7 @@ export const AdminSupportView: React.FC<AdminSupportViewProps> = ({ onOpenChat }
                     <input 
                         type="text" 
                         placeholder="Search conversations..." 
-                        className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-secondary outline-none text-sm font-medium w-64"
+                        className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none text-sm font-medium w-64"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -95,7 +95,7 @@ export const AdminSupportView: React.FC<AdminSupportViewProps> = ({ onOpenChat }
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
                 {/* Active Threads List */}
-                <Card className="lg:col-span-1 border border-slate-100 p-0 overflow-hidden flex flex-col">
+                <Card className="lg:col-span-1 border border-slate-100 p-0 overflow-hidden flex flex-col shadow-lg shadow-slate-200/50">
                     <div className="p-4 border-b border-slate-50 bg-slate-50/50">
                         <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Active Threads</h3>
                     </div>
@@ -118,19 +118,22 @@ export const AdminSupportView: React.FC<AdminSupportViewProps> = ({ onOpenChat }
                                     className="w-full p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors text-left group"
                                 >
                                     <div className="flex justify-between items-start mb-1">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-brand-light text-brand-secondary flex items-center justify-center font-bold text-xs">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-sm shadow-md ${thread.participants[0].role === 'driver' ? 'bg-brand-orange' : 'bg-brand-primary'}`}>
                                                 {thread.participants[0].name.charAt(0)}
                                             </div>
                                             <div>
                                                 <p className="text-sm font-bold text-slate-900 leading-none">{thread.participants[0].name}</p>
-                                                <p className="text-[10px] text-slate-400 mt-0.5 font-medium">#{thread.shipmentId.slice(-6)}</p>
+                                                <p className="text-[10px] text-slate-400 mt-1 font-medium flex items-center gap-1">
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${thread.participants[0].role === 'driver' ? 'bg-brand-orange' : 'bg-brand-primary'}`} />
+                                                    #{thread.shipmentId.slice(-6)}
+                                                </p>
                                             </div>
                                         </div>
-                                        <span className="text-[10px] text-slate-400">{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                        <span className="text-[10px] text-slate-400 font-bold">{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                                     </div>
-                                    <p className="text-xs text-slate-500 line-clamp-2 pl-10 border-l-2 border-transparent group-hover:border-slate-200 transition-all">
-                                        {thread.lastMessage.isMe ? 'You: ' : ''}{thread.lastMessage.text}
+                                    <p className="text-xs text-slate-500 line-clamp-2 pl-12 mt-1 border-l-2 border-transparent group-hover:border-slate-200 transition-all">
+                                        {thread.lastMessage.isMe ? <span className="text-brand-primary font-bold">You: </span> : ''}{thread.lastMessage.text}
                                     </p>
                                 </button>
                             ))
@@ -140,14 +143,22 @@ export const AdminSupportView: React.FC<AdminSupportViewProps> = ({ onOpenChat }
 
                 {/* Quick Actions / Featured Context */}
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className="p-8 border border-slate-100 flex flex-col items-center justify-center text-center h-full bg-slate-50/50">
-                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg mb-6 text-brand-secondary">
-                            <MessageSquare size={32} />
+                    <Card className="p-8 border border-slate-100 flex flex-col items-center justify-center text-center h-full bg-slate-50/50 shadow-inner">
+                        <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center shadow-xl mb-6 text-brand-primary ring-4 ring-slate-50">
+                            <MessageSquare size={36} strokeWidth={2.5} />
                         </div>
-                        <h3 className="text-xl font-black text-slate-900 mb-2">Select a Conversation</h3>
-                        <p className="text-slate-500 max-w-md mx-auto mb-8">
+                        <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Select a Conversation</h3>
+                        <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
                             Choose a thread from the list to view message history, manage support tickets, or coordinate with drivers and customers directly.
                         </p>
+                        <div className="flex gap-3">
+                            <div className="px-4 py-2 bg-white rounded-xl shadow-sm text-xs font-bold text-slate-500 border border-slate-100 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-brand-primary"></span> Customers
+                            </div>
+                            <div className="px-4 py-2 bg-white rounded-xl shadow-sm text-xs font-bold text-slate-500 border border-slate-100 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-brand-orange"></span> Drivers
+                            </div>
+                        </div>
                     </Card>
                 </div>
             </div>
