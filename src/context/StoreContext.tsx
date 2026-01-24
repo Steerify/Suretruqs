@@ -11,6 +11,7 @@ const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/
 
 interface StoreContextType {
   currentUser: User | null;
+  isInitializing: boolean;
   shipments: Shipment[];
   drivers: Driver[];
   customers: User[];
@@ -60,6 +61,7 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [customers, setCustomers] = useState<User[]>([]);
@@ -78,7 +80,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const fetchAllUserData = async () => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      setIsInitializing(false);
+      return;
+    }
 
     try {
       const userRes = await api.get('/auth/me');
@@ -121,6 +126,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       console.error("Initialization error:", error);
       localStorage.removeItem('token');
       setCurrentUser(null);
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -549,6 +556,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return (
     <StoreContext.Provider value={{
       currentUser,
+      isInitializing,
       shipments,
       drivers,
       customers,

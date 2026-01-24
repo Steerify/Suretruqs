@@ -16,6 +16,10 @@ export const DriverProfileView = ({ user, isOnline, setIsOnline, jobHistory, set
    // Get document URLs from user data (assuming documents are stored in user object)
    const userDocuments = (user as any)?.documents || {};
    
+   // Debug: Log what documents we have
+   console.log('User object:', user);
+   console.log('User documents:', userDocuments);
+   
    return (
      <div className="p-4 md:p-8 pb-24 fade-up w-full max-w-[1920px] mx-auto">
         <div className="fade-up w-full space-y-8 pb-20">
@@ -108,31 +112,63 @@ export const DriverProfileView = ({ user, isOnline, setIsOnline, jobHistory, set
                
                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                    {[
-                      { name: "Driver's License", status: "Verified", expiry: "Exp: 12/2025" },
-                      { name: "Vehicle Insurance", status: "Verified", expiry: "Exp: 06/2024" },
-                      { name: "Road Worthiness", status: "Expiring Soon", expiry: "Exp: Next Month", warning: true },
-                      { name: "Proof of Ownership", status: "Verified", expiry: "Permanent" },
-                   ].map((doc, i) => (
+                      { name: "Driver's License", key: "Driver's License", expiry: "Exp: 12/2025" },
+                      { name: "Vehicle Registration", key: "Vehicle Registration", expiry: "Exp: 06/2024" },
+                      { name: "Insurance Certificate", key: "Insurance Certificate", expiry: "Exp: Next Month" },
+                      { name: "Proof of Ownership", key: "Proof of Ownership", expiry: "Permanent" },
+                   ].map((doc, i) => {
+                      const hasDocument = !!userDocuments[doc.key];
+                      const isExpiringSoon = doc.expiry.includes("Next Month");
+                      
+                      return (
                       <div 
                         key={i} 
-                        onClick={() => setViewingDoc({ name: doc.name, url: userDocuments[doc.name] })}
-                        className={`border rounded-2xl p-5 flex flex-col justify-between h-36 transition-all hover:shadow-md cursor-pointer group ${doc.warning ? 'bg-orange-50 border-orange-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                        onClick={() => setViewingDoc({ name: doc.name, url: userDocuments[doc.key] })}
+                        className={`border rounded-2xl p-5 flex flex-col justify-between h-36 transition-all hover:shadow-md cursor-pointer group ${
+                           isExpiringSoon && hasDocument 
+                              ? 'bg-orange-50 border-orange-200' 
+                              : hasDocument 
+                                 ? 'bg-white border-slate-200 hover:border-slate-300' 
+                                 : 'bg-slate-50 border-slate-200 opacity-60'
+                        }`}
                       >
                          <div className="flex justify-between items-start">
-                            <div className={`p-2.5 rounded-xl ${doc.warning ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-500'}`}>
+                            <div className={`p-2.5 rounded-xl ${
+                               isExpiringSoon && hasDocument 
+                                  ? 'bg-orange-100 text-orange-600' 
+                                  : hasDocument 
+                                     ? 'bg-slate-50 text-slate-500' 
+                                     : 'bg-slate-100 text-slate-400'
+                            }`}>
                                <FileText size={20} />
                             </div>
-                            {doc.warning ? <AlertCircle size={20} className="text-orange-500"/> : <CheckCircle2 size={20} className="text-green-500"/>}
+                            {hasDocument ? (
+                               isExpiringSoon ? (
+                                  <AlertCircle size={20} className="text-orange-500"/>
+                               ) : (
+                                  <CheckCircle2 size={20} className="text-green-500"/>
+                               )
+                            ) : (
+                               <AlertCircle size={20} className="text-slate-300"/>
+                            )}
                          </div>
                          <div>
                             <div className="flex justify-between items-end">
                                 <p className="font-bold text-slate-900 text-sm mb-1">{doc.name}</p>
-                                <Eye size={14} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"/>
+                                {hasDocument && <Eye size={14} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"/>}
                             </div>
-                            <p className={`text-xs font-bold ${doc.warning ? 'text-orange-600' : 'text-slate-400'}`}>{doc.expiry}</p>
+                            <p className={`text-xs font-bold ${
+                               isExpiringSoon && hasDocument 
+                                  ? 'text-orange-600' 
+                                  : hasDocument 
+                                     ? 'text-slate-400' 
+                                     : 'text-slate-300'
+                            }`}>
+                               {hasDocument ? doc.expiry : 'Not Uploaded'}
+                            </p>
                          </div>
                       </div>
-                   ))}
+                   )})}
                </div>
             </div>
         </div>

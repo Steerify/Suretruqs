@@ -18,7 +18,18 @@ import { UserRole } from './types';
 import { useStore } from './context/StoreContext';
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: UserRole[] }) => {
-  const { currentUser } = useStore();
+  const { currentUser, isInitializing } = useStore();
+  
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   if (!currentUser) {
     return <Navigate to="/auth" replace />;
@@ -32,7 +43,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 };
 
 const App: React.FC = () => {
-  const { currentUser } = useStore();
+  const { currentUser, isInitializing } = useStore();
 
   const getDashboardPath = (role: UserRole) => {
     switch (role) {
@@ -42,6 +53,17 @@ const App: React.FC = () => {
       default: return '/';
     }
   };
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>
