@@ -27,6 +27,8 @@ export const AdminDashboard: React.FC = () => {
     } = useStore();
     
     const [activeTab, setActiveTab] = useState('overview');
+    const [timeFilter, setTimeFilter] = useState<'Day' | 'Week' | 'Month'>('Week');
+    const [shipmentFilter, setShipmentFilter] = useState<'All' | 'Active'>('All');
     const [showGlobalMap, setShowGlobalMap] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -59,17 +61,50 @@ export const AdminDashboard: React.FC = () => {
         { label: 'Completion Rate', value: '94%', icon: Activity, color: 'text-brand-primary', bg: 'bg-blue-50' },
     ];
 
-    const chartData = shipments.reduce((acc: any[], s) => {
-        const date = new Date(s.date).toLocaleDateString('en-US', { weekday: 'short' });
-        const existing = acc.find(d => d.name === date);
-        if (existing) {
-            existing.revenue += s.price || 0;
-            existing.count += 1;
+    const getChartData = () => {
+        const sorted = [...shipments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const data: any[] = [];
+        
+        if (timeFilter === 'Day') {
+            // Show last 24 hours or just today's hours
+            for(let i = 0; i < 24; i++) {
+                data.push({ name: `${i}:00`, revenue: 0 });
+            }
+            sorted.forEach(s => {
+                const date = new Date(s.date);
+                if (date.toDateString() === new Date().toDateString()) {
+                    const hour = date.getHours();
+                    data[hour].revenue += s.price || 0;
+                }
+            });
+        } else if (timeFilter === 'Week') {
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            days.forEach(d => data.push({ name: d, revenue: 0 }));
+            sorted.slice(-30).forEach(s => {
+                const date = new Date(s.date);
+                const dayName = days[date.getDay()];
+                const entry = data.find(d => d.name === dayName);
+                if (entry) entry.revenue += s.price || 0;
+            });
         } else {
-            acc.push({ name: date, revenue: s.price || 0, count: 1 });
+            // Month - last 30 days
+            for(let i = 29; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                data.push({ name: d.getDate().toString(), revenue: 0 });
+            }
+            sorted.forEach(s => {
+                const date = new Date(s.date);
+                const diff = Math.floor((new Date().getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+                if (diff < 30) {
+                    data[29 - diff].revenue += s.price || 0;
+                }
+            });
         }
-        return acc;
-    }, []).slice(-7);
+        return data;
+    };
+
+    const chartData = getChartData();
 
     // --- Sub-Components for Tabs ---
 
@@ -96,32 +131,73 @@ export const AdminDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Revenue Chart */}
-                <Card className="lg:col-span-2 p-8 border border-slate-100 shadow-sm">
-                    <div className="flex items-center justify-between mb-8">
+                <Card className="lg:col-span-2 p-8 border border-slate-100 shadow-sm overflow-hidden relative group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 relative z-10">
                         <div>
-                            <h3 className="text-xl font-black text-slate-900">Revenue Stream</h3>
-                            <p className="text-sm text-slate-500 font-medium">Weekly financial performance overview</p>
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Financial Analysis</h3>
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Revenue Stream</h3>
+                            <p className="text-sm text-slate-500 font-medium mt-1">Real-time settlement data visualized</p>
                         </div>
-                        <Button variant="ghost" className="text-brand-primary text-xs font-black uppercase tracking-widest bg-blue-50 hover:bg-blue-100">VIEW REPORT</Button>
+                        <div className="flex items-center gap-3">
+                            <div className="text-right mr-4 hidden md:block">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Growth</p>
+                                <p className="text-lg font-black text-green-500">+12.5%</p>
+                            </div>
+                            <Button variant="ghost" className="h-12 px-6 text-brand-primary text-xs font-black uppercase tracking-widest bg-blue-50 hover:bg-white hover:shadow-lg hover:shadow-blue-500/10 transition-all border border-blue-100/50 rounded-2xl">
+                                EXPAND REPORT
+                            </Button>
+                        </div>
                     </div>
-                    <div className="h-80 w-full">
+                    <div className="h-80 w-full relative z-10">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={chartData}>
                                 <defs>
                                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15}/>
                                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b', fontWeight: 800}} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b', fontWeight: 800}} tickFormatter={(v) => `₦${v/1000}k`} />
-                                <Tooltip 
-                                    contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px'}}
-                                    itemStyle={{fontWeight: 800, color: '#0f172a'}}
-                                    formatter={(value: number) => [`₦${value.toLocaleString()}`, 'Revenue']}
+                                <XAxis 
+                                    dataKey="name" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{fontSize: 10, fill: '#94a3b8', fontWeight: 700}} 
+                                    dy={15} 
                                 />
-                                <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{fontSize: 10, fill: '#94a3b8', fontWeight: 700}} 
+                                    tickFormatter={(v) => `₦${v >= 1000 ? v/1000 + 'k' : v}`} 
+                                />
+                                <Tooltip 
+                                    contentStyle={{
+                                        borderRadius: '24px', 
+                                        border: '1px solid #f1f5f9', 
+                                        boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.1)', 
+                                        padding: '16px',
+                                        background: 'rgba(255, 255, 255, 0.95)',
+                                        backdropBlur: '8px'
+                                    }}
+                                    cursor={{ stroke: '#3b82f6', strokeWidth: 1, strokeDasharray: '5 5' }}
+                                    itemStyle={{fontWeight: 900, color: '#1e293b', fontSize: '14px'}}
+                                    labelStyle={{fontWeight: 700, color: '#94a3b8', marginBottom: '4px', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em'}}
+                                    formatter={(value: number) => [`₦${value.toLocaleString()}`, 'VOLUME']}
+                                />
+                                <Area 
+                                    type="monotone" 
+                                    dataKey="revenue" 
+                                    stroke="#3b82f6" 
+                                    strokeWidth={4} 
+                                    fillOpacity={1} 
+                                    fill="url(#colorRev)" 
+                                    animationDuration={1500}
+                                />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -158,8 +234,16 @@ export const AdminDashboard: React.FC = () => {
         </div>
     );
 
-    const ShipmentsTab = () => (
-        <Card noPadding className="admin-tab-content overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2.5rem]">
+    const ShipmentsTab = () => {
+        const filtered = shipments.filter(s => {
+            if (shipmentFilter === 'Active') {
+                return [ShipmentStatus.ASSIGNED, ShipmentStatus.PICKED_UP, ShipmentStatus.IN_TRANSIT, ShipmentStatus.PENDING].includes(s.status);
+            }
+            return true;
+        });
+
+        return (
+            <Card noPadding className="admin-tab-content overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2.5rem]">
             <div className="p-8 bg-white border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h3 className="text-xl font-black text-slate-900 tracking-tight">Global Logistics Pipeline</h3>
@@ -170,8 +254,18 @@ export const AdminDashboard: React.FC = () => {
                         <MapPin size={16} className="mr-2" /> Live Map
                     </Button>
                     <div className="bg-slate-100 p-1 rounded-xl flex">
-                        <button className="px-4 py-2 bg-white rounded-lg shadow-sm text-[10px] font-black uppercase text-slate-900">All</button>
-                        <button className="px-4 py-2 text-[10px] font-black uppercase text-slate-400 hover:text-slate-600">Active</button>
+                        <button 
+                            onClick={() => setShipmentFilter('All')}
+                            className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${shipmentFilter === 'All' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            All
+                        </button>
+                        <button 
+                            onClick={() => setShipmentFilter('Active')}
+                            className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${shipmentFilter === 'Active' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            Active
+                        </button>
                     </div>
                 </div>
             </div>
@@ -187,7 +281,7 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                        {shipments.map(s => (
+                        {filtered.map(s => (
                             <tr key={s.id} className="hover:bg-slate-50/50 transition-colors group">
                                 <td className="px-8 py-5">
                                     <div className="flex items-center gap-4">
@@ -247,6 +341,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
         </Card>
     );
+};
 
     return (
         <div className="flex h-screen bg-[#F8FAFC] font-sans selection:bg-brand-secondary/10 overflow-hidden" ref={containerRef}>
@@ -349,8 +444,14 @@ export const AdminDashboard: React.FC = () => {
 
                     <div className="flex items-center gap-2 md:gap-4">
                         <div className="hidden md:flex bg-slate-100 rounded-2xl p-1.5 gap-1">
-                            {['Day', 'Week', 'Month'].map(t => (
-                                <button key={t} className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all ${t === 'Week' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t}</button>
+                            {['Day', 'Week', 'Month'].map((t: any) => (
+                                <button 
+                                    key={t} 
+                                    onClick={() => setTimeFilter(t)}
+                                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-300 ${timeFilter === t ? 'bg-white text-slate-900 shadow-md transform scale-105' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    {t}
+                                </button>
                             ))}
                         </div>
                         

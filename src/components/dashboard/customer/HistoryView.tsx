@@ -20,7 +20,20 @@ const getStatusLabel = (status: ShipmentStatus) => {
     }
 };
 
-export const HistoryView = ({ shipments, setSelectedHistoryItem }: HistoryViewProps) => (
+export const HistoryView = ({ shipments, setSelectedHistoryItem }: HistoryViewProps) => {
+    const [activeTab, setActiveTab] = React.useState<'All' | 'Active' | 'Completed'>('All');
+
+    const filteredShipments = shipments.filter(s => {
+        if (activeTab === 'Active') {
+            return [ShipmentStatus.PENDING, ShipmentStatus.ASSIGNED, ShipmentStatus.PICKED_UP, ShipmentStatus.IN_TRANSIT].includes(s.status);
+        }
+        if (activeTab === 'Completed') {
+            return s.status === ShipmentStatus.DELIVERED;
+        }
+        return true;
+    });
+
+    return (
       <div className="fade-in space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
@@ -28,8 +41,18 @@ export const HistoryView = ({ shipments, setSelectedHistoryItem }: HistoryViewPr
                   <p className="text-sm md:text-base text-slate-500 font-medium">Track and manage your past orders.</p>
               </div>
                <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
-                   {['All', 'Active', 'Completed'].map(tab => (
-                       <button key={tab} className="flex-1 sm:flex-none px-4 md:px-6 py-2 text-xs md:text-sm font-bold text-slate-600 hover:bg-white hover:shadow-sm rounded-lg transition-all">{tab}</button>
+                   {['All', 'Active', 'Completed'].map((tab: any) => (
+                       <button 
+                            key={tab} 
+                            onClick={() => setActiveTab(tab)}
+                            className={`flex-1 sm:flex-none px-4 md:px-6 py-2 text-xs md:text-sm font-bold rounded-lg transition-all ${
+                                activeTab === tab 
+                                ? 'bg-white text-brand-primary shadow-sm' 
+                                : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                        >
+                            {tab}
+                        </button>
                    ))}
                </div>
           </div>
@@ -48,7 +71,7 @@ export const HistoryView = ({ shipments, setSelectedHistoryItem }: HistoryViewPr
                           </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                          {shipments.map(s => (
+                          {filteredShipments.map(s => (
                               <tr key={s.id} className="hover:bg-blue-50/50 cursor-pointer transition-colors group" onClick={() => setSelectedHistoryItem(s)}>
                                   <td className="px-6 py-4">
                                       <span className="font-bold text-slate-900 text-sm font-mono bg-slate-100 px-2 py-1 rounded">{s.trackingId}</span>
@@ -86,7 +109,7 @@ export const HistoryView = ({ shipments, setSelectedHistoryItem }: HistoryViewPr
 
               {/* Mobile Card View */}
               <div className="md:hidden space-y-4">
-                  {shipments.map(s => (
+                  {filteredShipments.map(s => (
                       <div key={s.id} onClick={() => setSelectedHistoryItem(s)} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-all">
                           <div className="flex justify-between items-start mb-4">
                               <span className="font-bold text-slate-900 text-xs font-mono bg-slate-100 px-2 py-1 rounded">{s.trackingId}</span>
@@ -123,12 +146,13 @@ export const HistoryView = ({ shipments, setSelectedHistoryItem }: HistoryViewPr
                   ))}
               </div>
 
-              {shipments.length === 0 && (
+              {filteredShipments.length === 0 && (
                   <div className="py-12 bg-white rounded-2xl border border-dashed border-slate-200 text-center text-slate-400">
                       <Package size={48} className="mx-auto mb-3 opacity-20"/>
-                      <p className="font-medium text-slate-500">No shipment history found.</p>
+                      <p className="font-medium text-slate-500">No shipments found for this filter.</p>
                   </div>
               )}
           </Card>
       </div>
-  );
+    );
+};

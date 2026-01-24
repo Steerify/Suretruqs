@@ -17,6 +17,7 @@ export const AdminFinancesView: React.FC = () => {
     const [filterType, setFilterType] = useState<'ALL' | 'CREDIT' | 'DEBIT'>('ALL');
     const [filterStatus, setFilterStatus] = useState<'ALL' | 'SUCCESS' | 'PENDING' | 'FAILED'>('ALL');
     const [showFilters, setShowFilters] = useState(false);
+    const [timeFilter, setTimeFilter] = useState<'WEEK' | 'MONTH'>('WEEK');
 
     useEffect(() => {
         const fetchTransactions = async () => {
@@ -56,26 +57,31 @@ export const AdminFinancesView: React.FC = () => {
         return matchesSearch && matchesType && matchesStatus;
     });
 
-    const chartData = transactions.reduce((acc: any[], t) => {
-        const date = new Date(t.createdAt || t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const existing = acc.find(d => d.name === date);
-        if (existing) {
-            if (t.type === 'CREDIT') {
-                existing.credit += t.amount;
+    const getChartData = () => {
+        const limit = timeFilter === 'WEEK' ? 7 : 30;
+        return transactions.reduce((acc: any[], t) => {
+            const date = new Date(t.createdAt || t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const existing = acc.find(d => d.name === date);
+            if (existing) {
+                if (t.type === 'CREDIT') {
+                    existing.credit += t.amount;
+                } else {
+                    existing.debit += t.amount;
+                }
+                existing.total += t.amount;
             } else {
-                existing.debit += t.amount;
+                acc.push({ 
+                    name: date, 
+                    total: t.amount,
+                    credit: t.type === 'CREDIT' ? t.amount : 0,
+                    debit: t.type === 'DEBIT' ? t.amount : 0
+                });
             }
-            existing.total += t.amount;
-        } else {
-            acc.push({ 
-                name: date, 
-                total: t.amount,
-                credit: t.type === 'CREDIT' ? t.amount : 0,
-                debit: t.type === 'DEBIT' ? t.amount : 0
-            });
-        }
-        return acc;
-    }, []).slice(-7);
+            return acc;
+        }, []).slice(-limit);
+    };
+
+    const chartData = getChartData();
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -150,10 +156,16 @@ export const AdminFinancesView: React.FC = () => {
                             <p className="text-xs md:text-sm text-slate-500 font-medium mt-1">Weekly transaction flow analytics</p>
                         </div>
                         <div className="flex gap-2">
-                            <button className="px-3 py-1.5 text-[10px] font-black text-brand-secondary bg-brand-secondary/10 rounded-lg uppercase tracking-widest hover:bg-brand-secondary/20 transition-colors">
+                            <button 
+                                onClick={() => setTimeFilter('WEEK')}
+                                className={`px-3 py-1.5 text-[10px] font-black rounded-lg uppercase tracking-widest transition-colors ${timeFilter === 'WEEK' ? 'text-brand-secondary bg-brand-secondary/10' : 'text-slate-400 bg-slate-50 hover:bg-slate-100'}`}
+                            >
                                 Week
                             </button>
-                            <button className="px-3 py-1.5 text-[10px] font-black text-slate-400 bg-slate-50 rounded-lg uppercase tracking-widest hover:bg-slate-100 transition-colors">
+                            <button 
+                                onClick={() => setTimeFilter('MONTH')}
+                                className={`px-3 py-1.5 text-[10px] font-black rounded-lg uppercase tracking-widest transition-colors ${timeFilter === 'MONTH' ? 'text-brand-secondary bg-brand-secondary/10' : 'text-slate-400 bg-slate-50 hover:bg-slate-100'}`}
+                            >
                                 Month
                             </button>
                             <button className="p-2 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">
