@@ -2,6 +2,7 @@
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ShieldCheck } from 'lucide-react';
 import { LandingPage } from './components/views/LandingPage';
 import { AuthView } from './components/views/AuthView';
 import { OnboardingView } from './components/views/OnboardingView';
@@ -22,10 +23,30 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
   
   if (isInitializing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 overflow-hidden relative">
+        <div className="flex flex-col items-center">
+          <div className="relative w-40 h-40 flex items-center justify-center">
+            {/* Outer Orbit */}
+            <div className="absolute inset-0 border-[1px] border-slate-200 rounded-full animate-orbit-slow opacity-50"></div>
+            <div className="absolute -top-1 left-1/2 w-2 h-2 bg-brand-primary rounded-full blur-[2px]"></div>
+            
+            {/* Inner Orbit */}
+            <div className="absolute inset-4 border-[1px] border-slate-200 rounded-full animate-orbit opacity-80"></div>
+            <div className="absolute top-1/2 -right-1 w-1.5 h-1.5 bg-brand-secondary rounded-full"></div>
+
+            {/* Core */}
+            <div className="relative w-20 h-20 bg-white rounded-3xl shadow-xl border border-slate-100 flex items-center justify-center overflow-hidden">
+                <div className="animate-pulse-soft text-brand-primary">
+                    <ShieldCheck size={40} strokeWidth={1.5} />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-primary/10 to-transparent w-full h-full animate-scan"></div>
+            </div>
+          </div>
+          
+          <div className="mt-8 text-center space-y-2">
+             <h4 className="text-slate-900 font-black tracking-[0.4em] uppercase text-[10px]">Secure Gateway</h4>
+             <p className="text-slate-400 font-medium text-[11px] animate-pulse">Syncing logistics protocol...</p>
+          </div>
         </div>
       </div>
     );
@@ -56,10 +77,30 @@ const App: React.FC = () => {
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 overflow-hidden relative">
+        <div className="flex flex-col items-center">
+          <div className="relative w-40 h-40 flex items-center justify-center">
+            {/* Outer Orbit */}
+            <div className="absolute inset-0 border-[1px] border-slate-200 rounded-full animate-orbit-slow opacity-50"></div>
+            <div className="absolute -top-1 left-1/2 w-2 h-2 bg-brand-primary rounded-full blur-[2px]"></div>
+            
+            {/* Inner Orbit */}
+            <div className="absolute inset-4 border-[1px] border-slate-200 rounded-full animate-orbit opacity-80"></div>
+            <div className="absolute top-1/2 -right-1 w-1.5 h-1.5 bg-brand-secondary rounded-full"></div>
+
+            {/* Core */}
+            <div className="relative w-20 h-20 bg-white rounded-3xl shadow-xl border border-slate-100 flex items-center justify-center overflow-hidden">
+                <div className="animate-pulse-soft text-brand-primary">
+                    <ShieldCheck size={40} strokeWidth={1.5} />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-primary/10 to-transparent w-full h-full animate-scan"></div>
+            </div>
+          </div>
+          
+          <div className="mt-8 text-center space-y-2">
+             <h4 className="text-slate-900 font-black tracking-[0.4em] uppercase text-[10px]">SureTruqs Dashboard</h4>
+             <p className="text-slate-400 font-medium text-[11px] animate-pulse">Establishing encrypted link...</p>
+          </div>
         </div>
       </div>
     );
