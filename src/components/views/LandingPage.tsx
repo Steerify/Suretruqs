@@ -151,7 +151,7 @@ export const LandingPage: React.FC = () => {
         {/* Full Background Image */}
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=2400&q=80" 
+            src="/images/hero-bg.jpg" 
             alt="Logistics Ship" 
             className="w-full h-full object-cover"
           />
@@ -207,7 +207,7 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <div className="h-40 rounded-2xl overflow-hidden relative shadow-inner group">
                       <img 
-                        src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=800&q=80" 
+                        src="/images/delivery-truck.jpg" 
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                         alt="Delivery Truck"
                       />
@@ -234,9 +234,9 @@ export const LandingPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                {[
-                  { title: 'Inter-State Haulage', img: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=800&q=80', icon: Truck, color: 'bg-blue-100 text-blue-600', desc: 'Reliable long-distance heavy freight hauling across borders.' },
-                  { title: 'Last-Mile Delivery', img: 'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?auto=format&fit=crop&w=800&q=80', icon: Package, color: 'bg-orange-100 text-orange-600', desc: 'Fast and secure local last-mile deliveries for your customers.' },
-                  { title: 'Corporate Fleets', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated logistics management and corporate fleet solutions.' }
+                  { title: 'Inter-State Haulage', img: '/images/interstate-haulage.jpg', icon: Truck, color: 'bg-blue-100 text-blue-600', desc: 'Reliable long-distance heavy freight hauling across borders.' },
+                  { title: 'Last-Mile Delivery', img: '/images/last-mile.jpg', icon: Package, color: 'bg-orange-100 text-orange-600', desc: 'Fast and secure local last-mile deliveries for your customers.' },
+                  { title: 'Corporate Fleets', img: '/images/hero-bg.jpg', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated logistics management and corporate fleet solutions.' }
                ].map((service, idx) => (
                   <div key={idx} className="service-card group relative rounded-[2.5rem] overflow-hidden h-[450px] cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500">
                      <img src={service.img} alt={service.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-115" />
@@ -282,7 +282,7 @@ export const LandingPage: React.FC = () => {
                      {[
                         { title: 'Verified Drivers', text: 'All drivers undergo rigorous background checks.', icon: ShieldCheck },
                         { title: 'Real-Time Tracking', text: 'Monitor your cargo location 24/7.', icon: Navigation },
-                        { title: 'Insurance Coverage', text: 'Comprehensive goods-in-transit protection.', icon: ShieldCheck }
+                        { title: 'Comprehensive Protection', text: 'Full-scale goods-in-transit security.', icon: ShieldCheck }
                      ].map((feat, i) => (
                         <div key={i} className="feature-item flex items-start bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-brand-orange/30 transition-all hover:-translate-y-1 hover:shadow-md cursor-default">
                            <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-brand-primary mr-5 shrink-0 group-hover:bg-brand-primary group-hover:text-white transition-colors">
@@ -521,7 +521,7 @@ export const LandingPage: React.FC = () => {
                         {[
                             { title: 'Real-Time Visibility', desc: 'Track your cargo down to the meter.', icon: MapPin },
                             { title: 'Optimized Routing', desc: 'AI-driven route planning reduces transit time.', icon: Navigation },
-                            { title: 'Secure Checkpoints', desc: 'Verified stops and secure hubs.', icon: ShieldCheck }
+                            { title: 'Strategic Hubs', desc: 'Verified waypoints and transit points.', icon: ShieldCheck }
                         ].map((feature, i) => (
                             <div key={i} className="flex gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 cursor-default group">
                                 <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-brand-primary shrink-0 group-hover:scale-110 transition-transform">

@@ -320,7 +320,7 @@ export const AuthView: React.FC = () => {
 
       <div className="hidden lg:block lg:w-1/2 relative bg-brand-primary overflow-hidden">
         <img 
-          src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=2000&q=80" 
+          src="/images/auth-bg.jpg" 
           alt="Logistics Warehouse" 
           className="absolute inset-0 w-full h-full object-cover opacity-50 grayscale"
         />

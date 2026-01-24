@@ -1,13 +1,13 @@
 import React from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { StaticPageLayout } from '../../layout/StaticPageLayout';
-import { HelpCircle, ShieldCheck, UserCheck, MessageSquare, Search, FileText } from 'lucide-react';
+import { HelpCircle, ShieldCheck, UserCheck, MessageSquare, Search, FileText, CheckCircle2 } from 'lucide-react';
 
 const SUPPORT_DATA: Record<string, any> = {
   'help': {
     title: 'Help Center',
-    subtitle: 'Everything you need to know about using SureTruqs.',
-    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=2000&q=80',
+    subtitle: 'Comprehensive resources to help you master the SureTruqs platform.',
+    image: '/images/support-info.jpg',
     sections: [
       { title: "Getting Started", items: ["Creating an Account", "How to Book a Truck", "Understanding Pricing"] },
       { title: "Payments", items: ["Wallet Settlements", "Cancellation & Refunds", "Tax & Invoices"] },
@@ -16,8 +16,8 @@ const SUPPORT_DATA: Record<string, any> = {
   },
   'driver-support': {
     title: 'Driver Support',
-    subtitle: 'Resources and tools for our professional driver partners.',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=2000&q=80',
+    subtitle: 'Tools, documentation, and resources for our professional driver partners.',
+    image: '/images/about-hero.jpg',
     sections: [
       { title: "Onboarding", items: ["Required Documents", "Vehicle Inspection", "Background Checks"] },
       { title: "Earnings", items: ["Payout Schedule", "Referral Bonuses", "Performance Incentives"] },
@@ -25,10 +25,10 @@ const SUPPORT_DATA: Record<string, any> = {
     ]
   },
   'insurance': {
-    title: 'Insurance Policy',
-    subtitle: 'Comprehensive protection for every shipment.',
-    image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=2000&q=80',
-    content: "At SureTruqs, the safety of your cargo is our highest priority. Every shipment booked through our platform is covered by our comprehensive Goods-in-Transit (GIT) insurance policy.",
+    title: 'Protection Policy',
+    subtitle: 'Our commitment to the safety and security of every shipment.',
+    image: '/images/support-help.jpg',
+    content: "At SureTruqs, the safety of your cargo is our highest priority. Every shipment booked through our platform is covered by our comprehensive Goods-in-Transit (GIT) protection framework, managed by our premium insurance partners.",
     sections: [
       { title: "Scope of Cover", items: ["Theft & Hijacking", "Accidental Damage", "Fire & Explosion"] },
       { title: "Claim Process", items: ["Reporting an Incident", "Required Evidence", "Resolution Timelines"] }
@@ -48,45 +48,52 @@ export const SupportView: React.FC = () => {
       subtitle={support.subtitle}
       heroImage={support.image}
     >
-      <div className="space-y-16">
+      <div className="space-y-24">
         {support.content && (
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-black text-slate-900 mb-6 uppercase tracking-tight">Policy Overview</h2>
-            <p className="text-slate-600 text-lg leading-relaxed">
+          <div className="max-w-4xl">
+            <h2 className="text-sm font-black text-brand-orange uppercase tracking-[0.3em] mb-6">Policy Overview</h2>
+            <p className="text-slate-600 text-xl leading-relaxed font-medium">
               {support.content}
             </p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {support.sections.map((sec: any, i: number) => (
-             <div key={i} className="space-y-6">
-                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                   <div className="w-2 h-2 bg-brand-orange rounded-full"></div> {sec.title}
-                </h3>
-                <ul className="space-y-4">
+             <div key={i} className="space-y-8">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-50 text-brand-primary rounded-xl flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={20} />
+                    </div>
+                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                        {sec.title}
+                    </h3>
+                </div>
+                <div className="space-y-3">
                    {sec.items.map((item: string, idx: number) => (
-                     <li key={idx} className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-brand-orange transition-colors cursor-pointer group">
-                        <FileText size={16} className="text-slate-400 group-hover:text-brand-orange transition-colors" />
+                     <div key={idx} className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-brand-primary/20 hover:bg-white hover:shadow-xl transition-all cursor-pointer group">
                         <span className="text-sm font-bold text-slate-700">{item}</span>
-                     </li>
+                        <FileText size={16} className="text-slate-300 group-hover:text-brand-primary transition-colors" />
+                     </div>
                    ))}
-                </ul>
+                </div>
              </div>
           ))}
         </div>
 
-        <div className="flex flex-col md:flex-row gap-12 bg-brand-dark rounded-[2.5rem] p-12 text-white items-center">
-           <div className="md:w-1/2">
-              <h3 className="text-3xl font-black mb-4 uppercase tracking-tight">Still need help?</h3>
-              <p className="text-slate-400 font-medium">Our support team is available 24/7 to assist with any issues or questions you might have.</p>
+        {/* Contact Strip */}
+        <div className="bg-slate-900 rounded-[3rem] p-12 md:p-16 flex flex-col lg:flex-row items-center gap-12 relative overflow-hidden">
+           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_50%,rgba(59,130,246,0.1),transparent)] pointer-events-none"></div>
+           <div className="lg:w-1/2 relative z-10">
+              <h3 className="text-3xl font-black text-white mb-4 uppercase tracking-tight leading-tight">Can't find <br/> what you need?</h3>
+              <p className="text-slate-400 font-medium">Our support engineers are available 24/7 to assist with any technical or operational queries.</p>
            </div>
-           <div className="md:w-1/2 flex flex-col sm:flex-row gap-4 w-full">
-              <button className="flex-1 bg-white text-brand-dark py-4 rounded-full font-black uppercase text-xs flex items-center justify-center gap-2 hover:bg-slate-100 transition-colors">
-                 <MessageSquare size={16}/> Live Chat
+           <div className="lg:w-1/2 flex flex-col sm:flex-row gap-4 w-full relative z-10">
+              <button className="flex-1 bg-white text-slate-900 py-5 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-slate-100 transition-colors shadow-xl">
+                 <MessageSquare size={18}/> Start Live Chat
               </button>
-              <button className="flex-1 bg-white/10 border border-white/20 text-white py-4 rounded-full font-black uppercase text-xs flex items-center justify-center gap-2 hover:bg-white/20 transition-colors">
-                 <HelpCircle size={16}/> Email Support
+              <button className="flex-1 bg-white/10 border border-white/20 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-white/20 transition-colors">
+                 <HelpCircle size={18}/> Submit Ticket
               </button>
            </div>
         </div>

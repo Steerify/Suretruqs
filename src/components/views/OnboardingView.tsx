@@ -250,8 +250,8 @@ export const OnboardingView: React.FC = () => {
         <div className="relative w-full lg:w-5/12 hidden lg:block group overflow-hidden">
            <img 
              src={isDriver 
-               ? "https://images.unsplash.com/photo-1616432043562-3671ea2e5242?auto=format&fit=crop&w=1000&q=80" 
-               : "https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1000&q=80"
+               ? "/images/last-mile.jpg" 
+               : "/images/auth-bg.jpg"
              } 
              alt="Onboarding" 
              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"

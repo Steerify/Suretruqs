@@ -15,6 +15,7 @@ import { FleetView } from './components/views/info/FleetView';
 import { CareersView } from './components/views/info/CareersView';
 import { ServiceDetailView } from './components/views/info/ServiceDetailView';
 import { SupportView } from './components/views/info/SupportView';
+import { ScrollToTop } from './components/utils/ScrollToTop';
 import { UserRole } from './types';
 import { useStore } from './context/StoreContext';
 
@@ -108,6 +109,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      <ScrollToTop />
       <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={
