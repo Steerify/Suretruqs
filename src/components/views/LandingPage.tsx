@@ -373,7 +373,7 @@ export const LandingPage: React.FC = () => {
                                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                                  <span className="text-sm font-bold text-slate-900">In Transit</span>
                               </div>
-                              <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded border border-slate-200">TRK-8821</span>
+                              <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded border border-slate-200">SURE-TRQUS-8821</span>
                            </div>
                            
                            {/* Timeline Visual */}

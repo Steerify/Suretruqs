@@ -6,50 +6,17 @@ import { Card } from '../../ui/Card';
 import { useStore } from '../../../context/StoreContext';
 import { loadPaystackScript, initializePaystack } from '../../../utils/paystack';
 import { WithdrawalModal } from './WithdrawalModal';
+import { TopUpModal } from './TopUpModal';
 
 export const WalletView = () => {
-    const { walletBalance, transactions, topUpWallet, verifyWalletDeposit, currentUser } = useStore();
-    const [isProcessing, setIsProcessing] = useState(false);
+    const { walletBalance, transactions, currentUser } = useStore();
+    const [showTopUpModal, setShowTopUpModal] = useState(false);
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-
-    const handleTopUp = async () => {
-        const amountStr = prompt("Enter amount to top up (NGN):", "5000");
-        if (!amountStr) return;
-        const amount = parseFloat(amountStr);
-        if (isNaN(amount) || amount <= 0) return toast.error("Invalid amount");
-
-        setIsProcessing(true);
-        try {
-            const isLoaded = await loadPaystackScript();
-            if (!isLoaded) throw new Error("Could not load Paystack");
-
-            const initiateData = await topUpWallet(amount);
-            
-            initializePaystack({
-                email: currentUser?.email,
-                amount: amount,
-                reference: initiateData.reference,
-                callback: async (response: any) => {
-                    try {
-                        await verifyWalletDeposit(response.reference, amount);
-                        toast.success("Wallet topped up successfully!");
-                    } catch (err) {
-                        console.error("Verification error:", err);
-                        toast.success("Payment verification pending.");
-                    }
-                },
-                onClose: () => {
-                    setIsProcessing(false);
-                }
-            });
-        } catch (err: any) {
-            toast.error(err.message || "Failed to initiate payment");
-            setIsProcessing(false);
-        }
-    };
 
     return (
     <div className="fade-in w-full">
+      {showTopUpModal && <TopUpModal onClose={() => setShowTopUpModal(false)} />}
+      {showWithdrawModal && <WithdrawalModal onClose={() => setShowWithdrawModal(false)} />}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
          <div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">My Wallet</h2>
@@ -80,11 +47,10 @@ export const WalletView = () => {
                 
                 <div className="flex flex-wrap gap-4 mt-auto">
                    <Button 
-                        onClick={handleTopUp} 
-                        disabled={isProcessing}
+                        onClick={() => setShowTopUpModal(true)} 
                         className="bg-brand-orange hover:bg-orange-600 text-white border-none py-3 px-8 rounded-xl shadow-lg shadow-orange-900/20 font-bold flex items-center"
                    >
-                      <Plus size={18} className="mr-2"/> {isProcessing ? 'Processing' : 'Top Up Wallet'}
+                      <Plus size={18} className="mr-2"/> Top Up Wallet
                    </Button>
                    <Button 
                         variant="secondary" 

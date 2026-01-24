@@ -16,14 +16,15 @@ export const OnboardingView: React.FC = () => {
   
   // Form State for User Input
   const [formData, setFormData] = useState({
-      address: '',
-      phone: '',
+      address: currentUser?.address || '',
+      phone: currentUser?.phone || '',
       nin: '',
       dob: '',
       vehicleMake: '',
       vehicleModel: '',
       plateNumber: '',
       color: '',
+      companyName: currentUser?.company || '',
       vehicleCapacity: 'Medium (1-5 tons)',
       businessType: 'Retail / E-commerce',
       cargoTypes: [] as string[],
@@ -66,6 +67,7 @@ export const OnboardingView: React.FC = () => {
     } else {
       // Customer Validation
       if (step === 1) {
+        if (!formData.companyName) return "Please enter your company name.";
         if (!formData.businessType) return "Please select your industry.";
         if (!formData.address) return "Please enter your business hub address.";
         if (formData.phone.length < 10) return "Please enter a valid phone number.";
@@ -93,7 +95,7 @@ export const OnboardingView: React.FC = () => {
         await completeOnboarding({
           ...formData,
           phone: formData.phone,
-          company: !isDriver ? formData.businessType : undefined,
+          company: !isDriver ? formData.companyName : undefined,
           vehicleType: isDriver ? formData.vehicleMake : undefined,
           plateNumber: isDriver ? formData.plateNumber : undefined,
           vehicleModel: isDriver ? formData.vehicleModel : undefined,
@@ -125,20 +127,37 @@ export const OnboardingView: React.FC = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Client-side validation
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      return toast.error("Invalid file type. Please upload JPG, PNG or PDF.");
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      return toast.error("File is too large. Max size is 5MB.");
+    }
+
     setUploading(docName);
     const uploadFormData = new FormData();
     uploadFormData.append('file', file);
 
     try {
-      const response = await api.post('/upload/document', uploadFormData);
+      console.log(`[Onboarding] Uploading ${docName}...`);
+      const response = await api.post('/upload/document', uploadFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
       setDocuments(prev => ({ ...prev, [docName]: response.data.url }));
       if (!uploadedDocs.includes(docName)) {
         setUploadedDocs(prev => [...prev, docName]);
       }
       toast.success(`${docName} uploaded successfully!`);
-    } catch (error) {
-      toast.error(`Failed to upload ${docName}`);
-      console.error(error);
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || error.message || `Failed to upload ${docName}`;
+      toast.error(errorMsg);
+      console.error('[Upload Error details]:', error.response?.data || error);
     } finally {
       setUploading(null);
     }
@@ -408,11 +427,24 @@ export const OnboardingView: React.FC = () => {
                  {/* CUSTOMER FLOW */}
                  {!isDriver && (
                     <div className="min-h-[320px]">
-                       {step === 1 && (
+                        {step === 1 && (
                          <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
                             <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                <Building className="text-brand-secondary" /> Business Identity
                             </h3>
+                            <div>
+                               <label className="block text-sm font-bold text-slate-700 mb-1.5">Company Name</label>
+                               <div className="relative">
+                                 <Building size={18} className="absolute left-3 top-3 text-slate-400"/>
+                                 <input 
+                                    type="text" 
+                                    placeholder="e.g. SureTruqs Logistics Ltd" 
+                                    className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium" 
+                                    value={formData.companyName}
+                                    onChange={(e) => updateForm('companyName', e.target.value)}
+                                 />
+                               </div>
+                            </div>
                             <div>
                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Industry Segment</label>
                                <select 

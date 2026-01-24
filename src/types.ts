@@ -23,8 +23,14 @@ export interface User {
   email: string;
   phone?: string;
   company?: string;
+  registrationNumber?: string;
+  address?: string;
   onboarded?: boolean;
   walletBalance: number;
+  stats?: {
+    bookingsCount: number;
+    totalSpent: number;
+  };
 }
 
 export interface Driver {
@@ -93,4 +99,25 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   isMe: boolean; // Helper for UI
+}
+export interface Notification {
+  _id: string;
+  userId: string;
+  type: 'info' | 'success' | 'wallet' | 'alert';
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
+
+export interface Invoice {
+  _id: string;
+  id: string;
+  date: string;
+  amount: number;
+  upfront: number;
+  balance: number;
+  status: 'Paid' | 'Pending';
+  shipmentId: string;
+  trackingId: string;
 }

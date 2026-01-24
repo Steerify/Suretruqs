@@ -5,28 +5,40 @@ import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { User } from '../../../types';
 import { ChangePasswordModal } from './ChangePasswordModal';
+import { useStore } from '../../../context/StoreContext';
 
 interface ProfileViewProps {
-    user: User;
+    user: any;
     setShowPasswordModal: (show: boolean) => void;
 }
 
 export const ProfileView = ({ user, setShowPasswordModal }: ProfileViewProps) => {
+    const { invoices, completeOnboarding } = useStore();
     // Profile Edit State
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [profileData, setProfileData] = useState({
-      companyName: user.company || 'Shoprite NG',
-      regNumber: 'RC-8829102',
-      address: '12 Alausa Secretariat Road, Ikeja, Lagos'
+      companyName: user.company || '',
+      regNumber: user.registrationNumber || '',
+      address: user.address || ''
     });
 
-    const handleProfileSave = () => {
-        // Simulate API saving delay
-        setTimeout(() => {
+    const [loading, setLoading] = useState(false);
+
+    const handleProfileSave = async () => {
+        setLoading(true);
+        try {
+            await completeOnboarding({
+                company: profileData.companyName,
+                registrationNumber: profileData.regNumber,
+                address: profileData.address
+            });
             setIsEditingProfile(false);
-            // In a real app, we would update the user object or re-fetch data here
             toast.success("Profile details saved successfully!");
-        }, 800);
+        } catch (err) {
+            toast.error("Failed to update profile");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -36,18 +48,24 @@ export const ProfileView = ({ user, setShowPasswordModal }: ProfileViewProps) =>
                   <div className="h-40 bg-gradient-to-r from-blue-50 to-indigo-50"></div>
                   <div className="relative z-10 px-8 pb-8 flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16">
                      <div className="w-32 h-32 rounded-2xl bg-white p-1 shadow-lg shrink-0">
-                        <div className="w-full h-full bg-slate-100 rounded-xl flex items-center justify-center text-4xl font-bold text-slate-400 border border-slate-200">
-                           {user.name.split(' ').map(n=>n[0]).join('').substring(0,2)}
+                        <div className="w-full h-full bg-slate-100 rounded-xl flex items-center justify-center text-4xl font-bold text-slate-400 border border-slate-200 overflow-hidden">
+                           {user.avatar ? (
+                             <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                           ) : (
+                             user.name.split(' ').map((n: string)=>n[0]).join('').substring(0,2)
+                           )}
                         </div>
                      </div>
                      <div className="text-center md:text-left flex-1 mb-2">
                         <h2 className="text-3xl font-bold text-slate-900 mb-1">{user.name}</h2>
                         <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 text-slate-500 text-sm">
-                           <span className="flex items-center"><Building size={14} className="mr-1.5"/> Shoprite NG</span>
+                           <span className="flex items-center"><Building size={14} className="mr-1.5"/> {user.company || 'Private Customer'}</span>
                            <span className="hidden md:inline">•</span>
                            <span className="flex items-center"><Mail size={14} className="mr-1.5"/> {user.email}</span>
                            <span className="hidden md:inline">•</span>
-                           <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold border border-green-200">Verified Business</span>
+                           <span className={`px-2 py-0.5 rounded text-xs font-bold border ${user.onboarded ? 'bg-green-100 text-green-700 border-green-200' : 'bg-orange-100 text-orange-700 border-orange-200'}`}>
+                                {user.onboarded ? 'Verified Business' : 'Pending Setup'}
+                            </span>
                         </div>
                      </div>
                      <div className="flex gap-3">
@@ -69,14 +87,14 @@ export const ProfileView = ({ user, setShowPasswordModal }: ProfileViewProps) =>
                                  <div className="p-2 bg-blue-50 rounded-lg text-brand-primary"><Wallet size={16}/></div>
                                  <span className="text-sm font-medium text-slate-600">Total Spent</span>
                               </div>
-                              <span className="font-bold text-slate-900 tabular-nums">₦2.4M</span>
+                              <span className="font-bold text-slate-900 tabular-nums">₦{(user.stats?.totalSpent || 0).toLocaleString()}</span>
                            </div>
                            <div className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-100">
                               <div className="flex items-center gap-3">
                                  <div className="p-2 bg-orange-50 rounded-lg text-brand-orange"><Package size={16}/></div>
                                  <span className="text-sm font-medium text-slate-600">Bookings</span>
                               </div>
-                              <span className="font-bold text-slate-900 tabular-nums">142</span>
+                              <span className="font-bold text-slate-900 tabular-nums">{user.stats?.bookingsCount || 0}</span>
                            </div>
                         </div>
                      </Card>
@@ -119,9 +137,9 @@ export const ProfileView = ({ user, setShowPasswordModal }: ProfileViewProps) =>
                             <h3 className="font-bold text-slate-900 text-lg flex items-center"><Building size={20} className="mr-2 text-brand-secondary"/> Company Details</h3>
                             {isEditingProfile ? (
                                 <div className="flex gap-2">
-                                    <button onClick={() => setIsEditingProfile(false)} className="text-sm text-slate-500 font-bold hover:text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">Cancel</button>
-                                    <button onClick={handleProfileSave} className="text-sm bg-brand-secondary text-white font-bold px-4 py-1.5 rounded-lg hover:bg-blue-600 shadow-sm flex items-center gap-1.5 transition-colors">
-                                        <Save size={14}/> Save Changes
+                                    <button onClick={() => setIsEditingProfile(false)} disabled={loading} className="text-sm text-slate-500 font-bold hover:text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">Cancel</button>
+                                    <button onClick={handleProfileSave} disabled={loading} className="text-sm bg-brand-secondary text-white font-bold px-4 py-1.5 rounded-lg hover:bg-blue-600 shadow-sm flex items-center gap-1.5 transition-colors disabled:opacity-50">
+                                        {loading ? 'Saving...' : <><Save size={14}/> Save Changes</>}
                                     </button>
                                 </div>
                             ) : (
@@ -166,25 +184,26 @@ export const ProfileView = ({ user, setShowPasswordModal }: ProfileViewProps) =>
                      <Card className="border border-slate-200 shadow-sm">
                          <h3 className="font-bold text-slate-900 mb-6 flex items-center"><FileText size={20} className="mr-2 text-blue-500"/> Invoices</h3>
                          <div className="space-y-1">
-                             {[
-                                 { id: 'INV-2024-001', date: 'Oct 24, 2024', amount: '₦45,000', status: 'Paid' },
-                                 { id: 'INV-2024-002', date: 'Oct 20, 2024', amount: '₦120,000', status: 'Paid' },
-                                 { id: 'INV-2024-003', date: 'Oct 15, 2024', amount: '₦15,000', status: 'Pending' }
-                             ].map((inv, i) => (
-                                 <div key={i} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors border-b border-slate-50 last:border-0">
+                             {invoices.length > 0 ? invoices.slice(0, 5).map((inv, i) => (
+                                 <div key={i} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors border-b border-slate-50 last:border-0 cursor-pointer group">
                                      <div className="flex items-center gap-3">
-                                         <div className="bg-slate-100 p-2 rounded text-slate-500"><FileText size={16}/></div>
+                                         <div className="bg-slate-100 p-2 rounded text-slate-500 group-hover:bg-brand-primary group-hover:text-white transition-colors"><FileText size={16}/></div>
                                          <div>
                                              <p className="text-sm font-bold text-slate-900">{inv.id}</p>
-                                             <p className="text-xs text-slate-500 tabular-nums">{inv.date}</p>
+                                             <p className="text-xs text-slate-500 tabular-nums">{new Date(inv.date).toLocaleDateString()}</p>
                                          </div>
                                      </div>
                                      <div className="text-right">
-                                         <p className="text-sm font-bold text-slate-900 tabular-nums">{inv.amount}</p>
+                                         <p className="text-sm font-bold text-slate-900 tabular-nums">₦{inv.amount.toLocaleString()}</p>
                                          <p className={`text-[10px] font-bold uppercase ${inv.status === 'Paid' ? 'text-green-600' : 'text-orange-500'}`}>{inv.status}</p>
                                      </div>
                                  </div>
-                             ))}
+                             )) : (
+                                <div className="py-10 text-center text-slate-400">
+                                    <FileText size={40} className="mx-auto mb-3 opacity-10"/>
+                                    <p className="text-xs font-bold uppercase tracking-widest">No invoices yet</p>
+                                </div>
+                             )}
                          </div>
                          <Button variant="ghost" size="sm" className="w-full mt-4 text-brand-secondary">View All Invoices</Button>
                      </Card>

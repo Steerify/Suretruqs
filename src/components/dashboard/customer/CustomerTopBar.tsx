@@ -12,6 +12,9 @@ interface CustomerTopBarProps {
 }
 
 export const CustomerTopBar = ({ user, view, setView, showNotifications, setShowNotifications, onLogout }: CustomerTopBarProps) => {
+    const { notifications } = useStore();
+    const unreadCount = notifications.filter(n => !n.read).length;
+
     return (
       <div className="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 transition-all duration-300">
          <div className="w-full max-w-[1920px] mx-auto flex justify-between items-center px-6 h-20">
@@ -31,7 +34,6 @@ export const CustomerTopBar = ({ user, view, setView, showNotifications, setShow
                 <div className="hidden md:flex items-center bg-slate-50 p-1.5 rounded-full border border-slate-100">
                     {[
                         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                        { id: 'find-drivers', label: 'Drivers', icon: Truck },
                         { id: 'wallet', label: 'Wallet', icon: Wallet },
                         { id: 'history', label: 'History', icon: History },
                         { id: 'profile', label: 'Account', icon: Settings }
@@ -59,7 +61,11 @@ export const CustomerTopBar = ({ user, view, setView, showNotifications, setShow
                     className={`relative w-10 h-10 flex items-center justify-center rounded-full transition-colors border group ${showNotifications ? 'bg-blue-50 text-brand-primary border-blue-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 border-transparent hover:border-slate-200'}`}
                  >
                      <Bell size={20} strokeWidth={2} className="group-hover:animate-swing" />
-                     <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white"></span>
+                     {unreadCount > 0 && (
+                        <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-bold border-2 border-white rounded-full flex items-center justify-center">
+                            {unreadCount}
+                        </span>
+                     )}
                  </button>
                  
                  <div className="h-8 w-px bg-slate-200 hidden md:block mx-1"></div>
@@ -74,7 +80,7 @@ export const CustomerTopBar = ({ user, view, setView, showNotifications, setShow
                      </div>
                      <div className="flex flex-col pr-1">
                         <span className="text-xs font-bold text-slate-800 leading-none">{user.name.split(' ')[0]}</span>
-                        <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Shoprite NG</span>
+                        <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">{user.company || 'New Partner'}</span>
                      </div>
                      <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-600 transition-colors">
                          <ChevronRight size={12} className="rotate-90" strokeWidth={3}/>

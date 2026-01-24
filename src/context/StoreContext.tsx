@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { io, Socket } from 'socket.io-client';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
-import { UserRole, Shipment, User, ShipmentStatus, Driver, ChatMessage, Transaction } from '../types';
+import { UserRole, Shipment, User, ShipmentStatus, Driver, ChatMessage, Transaction, Invoice, Notification } from '../types';
 
 const SOCKET_URL = (import.meta as any).env.VITE_SOCKET_URL || 'http://localhost:5000';
 const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api';
@@ -19,13 +19,16 @@ interface StoreContextType {
   isTyping: Record<string, boolean>; // shipmentId -> boolean
   walletBalance: number;
   transactions: Transaction[];
+  invoices: Invoice[];
   shipmentLocations: Record<string, { lat: number, lng: number }>;
   adminNotifications: any[];
+  notifications: Notification[];
   hasTransactionPin: boolean;
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
   signup: (userData: any) => Promise<void>;
+  googleLogin: (token: string) => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (data: any) => Promise<void>;
@@ -43,6 +46,12 @@ interface StoreContextType {
   withdrawFunds: (data: any) => Promise<void>;
   setTransactionPin: (pin: string) => Promise<void>;
   assignDriverToShipment: (shipmentId: string, driverId: string, adminId: string, notes?: string) => Promise<void>;
+  setJobPricing: (data: { shipmentId: string, totalAmount: number, minUpfront: number }) => Promise<void>;
+  payUpfront: (data: { shipmentId: string, amount: number }) => Promise<void>;
+  settleJob: (shipmentId: string) => Promise<void>;
+  fetchNotifications: () => Promise<void>;
+  markNotificationAsRead: (id: string) => Promise<void>;
+  markAllNotificationsAsRead: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -57,54 +66,62 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isTyping, setIsTyping] = useState<Record<string, boolean>>({});
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [shipmentLocations, setShipmentLocations] = useState<Record<string, { lat: number, lng: number }>>({});
   const [adminNotifications, setAdminNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [hasTransactionPin, setHasTransactionPin] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
 
+  const fetchAllUserData = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const userRes = await api.get('/auth/me');
+      setCurrentUser(userRes.data);
+      setHasTransactionPin(!!userRes.data.transactionPin);
+      
+      // Fetch shipments for user
+      let shipmentFilter = '';
+      if (userRes.data.role === UserRole.DRIVER) {
+        shipmentFilter = `?driver_id=${userRes.data.id || userRes.data._id}`;
+      } else if (userRes.data.role === UserRole.CUSTOMER) {
+        shipmentFilter = `?customer_id=${userRes.data.id || userRes.data._id}`;
+      }
+      
+      const shipmentsRes = await api.get(`/shipments${shipmentFilter}`);
+      setShipments(shipmentsRes.data);
+
+      // Fetch available drivers (if customer or admin)
+      if (userRes.data.role === UserRole.CUSTOMER || userRes.data.role === UserRole.ADMIN) {
+        const driversRes = await api.get('/users/drivers');
+        setDrivers(driversRes.data);
+      }
+
+      // Fetch customers (if admin)
+      if (userRes.data.role === UserRole.ADMIN) {
+         const customersRes = await api.get('/users'); 
+         setCustomers(customersRes.data.filter((u: User) => u.role === UserRole.CUSTOMER));
+      }
+
+      await fetchWalletData();
+
+      if (userRes.data.role === UserRole.CUSTOMER) {
+        await fetchInvoices();
+      }
+
+      await fetchNotifications();
+    } catch (error) {
+      console.error("Initialization error:", error);
+      localStorage.removeItem('token');
+      setCurrentUser(null);
+    }
+  };
+
   // Initialize Auth & Socket
   useEffect(() => {
-    const initData = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const userRes = await api.get('/auth/me');
-          setCurrentUser(userRes.data);
-          setHasTransactionPin(!!userRes.data.transactionPin);
-          
-          // Fetch shipments for user
-          let shipmentFilter = '';
-          if (userRes.data.role === UserRole.DRIVER) {
-            shipmentFilter = `?driver_id=${userRes.data.id || userRes.data._id}`;
-          } else if (userRes.data.role === UserRole.CUSTOMER) {
-            shipmentFilter = `?customer_id=${userRes.data.id || userRes.data._id}`;
-          }
-          
-          const shipmentsRes = await api.get(`/shipments${shipmentFilter}`);
-          setShipments(shipmentsRes.data);
-
-          // Fetch available drivers (if customer or admin)
-          if (userRes.data.role === UserRole.CUSTOMER || userRes.data.role === UserRole.ADMIN) {
-            const driversRes = await api.get('/users/drivers');
-            setDrivers(driversRes.data);
-          }
-
-          // Fetch customers (if admin)
-          if (userRes.data.role === UserRole.ADMIN) {
-             const customersRes = await api.get('/users'); // Assuming this returns all users or customers
-             setCustomers(customersRes.data.filter((u: User) => u.role === UserRole.CUSTOMER));
-          }
-
-          // Fetch Wallet Data
-          await fetchWalletData();
-        } catch (error) {
-          console.error("Initialization error:", error);
-          localStorage.removeItem('token');
-          setCurrentUser(null);
-        }
-      }
-    };
-    initData();
+    fetchAllUserData();
   }, []);
 
   useEffect(() => {
@@ -149,7 +166,40 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     newSocket.on('wallet_updated', (data: any) => {
         setWalletBalance(data.balance);
         fetchWalletData(); // Refresh transaction history
-        toast.success("Wallet updated!");
+    });
+
+    newSocket.on('new_notification', (data: any) => {
+        setNotifications(prev => [data, ...prev].slice(0, 20));
+        toast.custom((t) => (
+            <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 overflow-hidden border border-slate-100`}>
+              <div className="flex-1 w-0 p-4">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 pt-0.5">
+                    <div className={`p-2 rounded-full ${
+                        data.type === 'info' ? 'bg-blue-100 text-brand-primary' :
+                        data.type === 'success' ? 'bg-green-100 text-green-600' :
+                        data.type === 'wallet' ? 'bg-orange-100 text-brand-orange' :
+                        'bg-red-100 text-red-600'
+                    }`}>
+                        {data.title.charAt(0)}
+                    </div>
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-bold text-slate-900">{data.title}</p>
+                    <p className="mt-1 text-xs text-slate-500 font-medium">{data.message}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex border-l border-slate-100">
+                <button
+                  onClick={() => toast.dismiss(t.id)}
+                  className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-xs font-bold text-brand-primary hover:text-blue-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+        ), { duration: 4000 });
     });
 
     newSocket.on('admin_notification', (data: any) => {
@@ -233,9 +283,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const login = async (email: string, password: string) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      
       localStorage.setItem('token', response.data.token);
-      setCurrentUser(response.data.user);
+      setCurrentUser(response.data.user); // Set immediately
+      await fetchAllUserData();
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Login failed');
     }
@@ -245,9 +295,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     try {
       const response = await api.post('/auth/register', userData);
       localStorage.setItem('token', response.data.token);
-      setCurrentUser(response.data.user);
+      setCurrentUser(response.data.user); // Set immediately for instant redirect
+      await fetchAllUserData(); // Fetch the rest (wallet, shipments, etc.)
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Signup failed');
+    }
+  };
+
+  const googleLogin = async (token: string) => {
+    try {
+        const response = await api.post('/auth/google', { token });
+        localStorage.setItem('token', response.data.token);
+        setCurrentUser(response.data.user);
+        await fetchAllUserData();
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Google Auth failed');
     }
   };
 
@@ -380,7 +442,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const verifyWalletDeposit = async (reference: string) => {
     try {
-      const response = await api.get(`/wallet/deposit/verify?reference=${reference}`);
+      const response = await api.get(`/wallet/deposit/verify/${reference}`);
       await fetchWalletData(); // Refresh UI
       return response.data;
     } catch (error: any) {
@@ -430,6 +492,42 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get('/notifications');
+      setNotifications(res.data);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    }
+  };
+
+  const markNotificationAsRead = async (id: string) => {
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await api.post('/notifications/read-all');
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
+  };
+
+  const fetchInvoices = async () => {
+    try {
+      const res = await api.get('/payments/invoices');
+      setInvoices(res.data);
+    } catch (err) {
+      console.error('Error fetching invoices:', err);
+    }
+  };
+
   return (
     <StoreContext.Provider value={{
       currentUser,
@@ -441,11 +539,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       isTyping,
       walletBalance,
       transactions,
+      invoices,
       shipmentLocations,
       adminNotifications,
+      notifications,
       hasTransactionPin,
       login,
       signup,
+      googleLogin,
       logout,
       forgotPassword,
       resetPassword,
@@ -462,7 +563,24 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       verifyWalletDeposit,
       withdrawFunds,
       setTransactionPin,
-      assignDriverToShipment
+      assignDriverToShipment,
+      setJobPricing: async (data: any) => {
+        const res = await api.post('/payments/set-price', data);
+        toast.success(res.data.message);
+      },
+      payUpfront: async (data: any) => {
+        const res = await api.post('/payments/pay-upfront', data);
+        toast.success(res.data.message);
+        await fetchWalletData();
+      },
+      settleJob: async (shipmentId: string) => {
+        const res = await api.post('/payments/settle', { shipmentId });
+        toast.success(res.data.message);
+        await fetchWalletData();
+      },
+      fetchNotifications,
+      markNotificationAsRead,
+      markAllNotificationsAsRead
     }}>
       {children}
     </StoreContext.Provider>

@@ -1,54 +1,64 @@
 import React from 'react';
 import { Info, CheckCircle2, Wallet, AlertCircle, Bell } from 'lucide-react';
+import { useStore } from '../../../context/StoreContext';
+import { formatDistanceToNow } from 'date-fns';
 
-// Mock Notifications
-const MOCK_NOTIFICATIONS = [
-  { id: 1, type: 'info', title: 'Driver Arriving Soon', message: 'Musa Ibrahim is 5 minutes away from pickup location.', time: '2 mins ago', read: false },
-  { id: 2, type: 'success', title: 'Shipment Delivered', message: 'Shipment #TRK-7712 has been successfully delivered.', time: '1 hour ago', read: false },
-  { id: 3, type: 'wallet', title: 'Wallet Top-up', message: 'Your wallet has been credited with ₦100,000.', time: 'Yesterday', read: true },
-  { id: 4, type: 'alert', title: 'Verification Pending', message: 'Please update your business registration document.', time: '2 days ago', read: true },
-];
+export const NotificationPanel = () => {
+    const { notifications, markNotificationAsRead, markAllNotificationsAsRead } = useStore();
 
-export const NotificationPanel = () => (
-    <div className="absolute top-20 right-4 md:right-20 w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[60] animate-[fadeIn_0.2s_ease-out]">
-        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <h3 className="font-bold text-slate-900">Notifications</h3>
-            <button className="text-xs font-bold text-brand-primary hover:underline">Mark all as read</button>
-        </div>
-        <div className="max-h-[400px] overflow-y-auto">
-            {MOCK_NOTIFICATIONS.length > 0 ? (
-                <div className="divide-y divide-slate-50">
-                    {MOCK_NOTIFICATIONS.map((notif) => (
-                        <div key={notif.id} className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!notif.read ? 'bg-blue-50/30' : ''}`}>
-                            <div className={`mt-1 shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                                notif.type === 'info' ? 'bg-blue-100 text-brand-primary' :
-                                notif.type === 'success' ? 'bg-green-100 text-green-600' :
-                                notif.type === 'wallet' ? 'bg-orange-100 text-brand-orange' :
-                                'bg-red-100 text-red-600'
-                            }`}>
-                                {notif.type === 'info' && <Info size={16} />}
-                                {notif.type === 'success' && <CheckCircle2 size={16} />}
-                                {notif.type === 'wallet' && <Wallet size={16} />}
-                                {notif.type === 'alert' && <AlertCircle size={16} />}
+    return (
+        <div className="absolute top-20 right-4 md:right-20 w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[60] animate-[fadeIn_0.2s_ease-out]">
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 className="font-bold text-slate-900">Notifications</h3>
+                <button 
+                    onClick={markAllNotificationsAsRead}
+                    className="text-xs font-bold text-brand-primary hover:underline"
+                >
+                    Mark all as read
+                </button>
+            </div>
+            <div className="max-h-[400px] overflow-y-auto">
+                {notifications.length > 0 ? (
+                    <div className="divide-y divide-slate-50">
+                        {notifications.map((notif) => (
+                            <div 
+                                key={notif._id} 
+                                onClick={() => markNotificationAsRead(notif._id)}
+                                className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!notif.read ? 'bg-blue-50/30' : ''}`}
+                            >
+                                <div className={`mt-1 shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                                    notif.type === 'info' ? 'bg-blue-100 text-brand-primary' :
+                                    notif.type === 'success' ? 'bg-green-100 text-green-600' :
+                                    notif.type === 'wallet' ? 'bg-orange-100 text-brand-orange' :
+                                    'bg-red-100 text-red-600'
+                                }`}>
+                                    {notif.type === 'info' && <Info size={16} />}
+                                    {notif.type === 'success' && <CheckCircle2 size={16} />}
+                                    {notif.type === 'wallet' && <Wallet size={16} />}
+                                    {notif.type === 'alert' && <AlertCircle size={16} />}
+                                </div>
+                                <div>
+                                    <h4 className={`text-sm font-bold ${!notif.read ? 'text-slate-900' : 'text-slate-600'}`}>{notif.title}</h4>
+                                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{notif.message}</p>
+                                    <p className="text-[10px] text-slate-400 font-bold mt-2">
+                                        {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true })}
+                                    </p>
+                                </div>
+                                {!notif.read && <div className="w-2 h-2 rounded-full bg-red-500 mt-2 shrink-0"></div>}
                             </div>
-                            <div>
-                                <h4 className={`text-sm font-bold ${!notif.read ? 'text-slate-900' : 'text-slate-600'}`}>{notif.title}</h4>
-                                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{notif.message}</p>
-                                <p className="text-[10px] text-slate-400 font-bold mt-2">{notif.time}</p>
-                            </div>
-                            {!notif.read && <div className="w-2 h-2 rounded-full bg-red-500 mt-2 shrink-0"></div>}
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="p-8 text-center text-slate-400">
-                    <Bell size={32} className="mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No new notifications</p>
-                </div>
-            )}
+                        ))}
+                    </div>
+                ) : (
+                    <div className="p-8 text-center text-slate-400">
+                        <Bell size={32} className="mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No new notifications</p>
+                    </div>
+                )}
+            </div>
+            <div className="p-3 border-t border-slate-100 text-center bg-slate-50">
+                <button className="text-xs font-bold text-slate-500 hover:text-brand-primary">View All History</button>
+            </div>
         </div>
-        <div className="p-3 border-t border-slate-100 text-center bg-slate-50">
-            <button className="text-xs font-bold text-slate-500 hover:text-brand-primary">View All History</button>
-        </div>
-    </div>
-);
+    );
+};
+

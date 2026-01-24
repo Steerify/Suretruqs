@@ -7,6 +7,7 @@ import { Truck, User, ArrowLeft, CheckCircle2, Mail, Lock, Phone as PhoneIcon, B
 
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const InputField = ({ 
   label, name, type = "text", placeholder, icon: Icon, required = true, value, onChange 
@@ -33,7 +34,7 @@ const InputField = ({
 );
 
 export const AuthView: React.FC = () => {
-  const { login, signup, forgotPassword, resetPassword } = useStore();
+  const { login, signup, googleLogin, forgotPassword, resetPassword } = useStore();
   const navigate = useNavigate(); 
   const onBack = () => navigate('/');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -100,6 +101,21 @@ export const AuthView: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setIsLoading(true);
+    try {
+        await googleLogin(credentialResponse.credential);
+    } catch (err: any) {
+        toast.error(err.message || "Google Auth failed.");
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handeGoogleError = () => {
+    toast.error("Google login failed. Please try again.");
   };
 
   return (
@@ -267,6 +283,24 @@ export const AuthView: React.FC = () => {
                  </Button>
                </div>
              </form>
+
+              <div className="relative my-8 auth-form-anim">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
+                <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-4 text-slate-400 font-bold tracking-widest">Or continue with</span></div>
+              </div>
+
+              <div className="flex flex-col gap-4 auth-form-anim">
+                <div className="flex justify-center">
+                    <GoogleLogin 
+                        onSuccess={handleGoogleSuccess} 
+                        onError={handeGoogleError}
+                        theme="outline"
+                        size="large"
+                        shape="pill"
+                        text={authMode === 'SIGNUP' ? 'signup_with' : 'signin_with'}
+                    />
+                </div>
+              </div>
 
              <div className="mt-8 text-center auth-form-anim">
                <p className="text-sm text-slate-500 font-medium">
