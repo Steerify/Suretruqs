@@ -7,7 +7,7 @@ const SUPPORT_DATA: Record<string, any> = {
   'help': {
     title: 'Help Center',
     subtitle: 'Comprehensive resources to help you master the SureTruqs platform.',
-    image: '/images/support-info.jpg',
+    image: '/images/about-hero.jpg',
     sections: [
       { title: "Getting Started", items: ["Creating an Account", "How to Book a Truck", "Understanding Pricing"] },
       { title: "Payments", items: ["Wallet Settlements", "Cancellation & Refunds", "Tax & Invoices"] },
@@ -17,7 +17,7 @@ const SUPPORT_DATA: Record<string, any> = {
   'driver-support': {
     title: 'Driver Support',
     subtitle: 'Tools, documentation, and resources for our professional driver partners.',
-    image: '/images/about-hero.jpg',
+    image: '/images/delivery-truck.png',
     sections: [
       { title: "Onboarding", items: ["Required Documents", "Vehicle Inspection", "Background Checks"] },
       { title: "Earnings", items: ["Payout Schedule", "Referral Bonuses", "Performance Incentives"] },

@@ -151,7 +151,7 @@ export const LandingPage: React.FC = () => {
         {/* Full Background Image */}
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1580674285054-bed31e145f59?auto=format&fit=crop&q=80&w=1920" 
+            src="/images/hero-bg.png" 
             alt="Modern African Logistics Hub" 
             className="w-full h-full object-cover"
           />
@@ -207,7 +207,7 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <div className="h-40 rounded-2xl overflow-hidden relative shadow-inner group">
                       <img 
-                        src="https://images.unsplash.com/photo-1598211686290-a8ef209d87c5?auto=format&fit=crop&q=80&w=800" 
+                        src="/images/fleet-truck.jpg" 
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                         alt="Logistics Fleet"
                       />
@@ -234,9 +234,9 @@ export const LandingPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                {[
-                  { title: 'Inter-State Haulage', img: 'https://images.unsplash.com/photo-1598211686290-a8ef209d87c5?auto=format&fit=crop&q=80&w=1200', icon: Truck, color: 'bg-blue-100 text-blue-600', desc: 'Reliable long-distance heavy freight hauling across borders.' },
-                  { title: 'Last-Mile Delivery', img: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80&w=1200', icon: Package, color: 'bg-orange-100 text-orange-600', desc: 'Fast and secure local last-mile deliveries for your customers.' },
-                  { title: 'Corporate Fleets', img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated logistics management and corporate fleet solutions.' }
+                  { title: 'Inter-State Haulage', img: "/images/interstate-haulage.png", icon: Truck, color: 'bg-blue-100 text-blue-600', desc: 'Reliable long-distance heavy freight hauling across borders.' },
+                  { title: 'Last-Mile Delivery', img: '/images/delivery-truck.png', icon: Package, color: 'bg-orange-100 text-orange-600', desc: 'Fast and secure local last-mile deliveries for your customers.' },
+                  { title: 'Corporate Fleets', img: '/images/our-fleet.png', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated logistics management and corporate fleet solutions.' }
                ].map((service, idx) => (
                   <div key={idx} className="service-card group relative rounded-[2.5rem] overflow-hidden h-[450px] cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500">
                      <img src={service.img} alt={service.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-115" />

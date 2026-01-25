@@ -26,7 +26,7 @@ const SERVICE_DATA: Record<string, any> = {
   'last-mile': {
     title: 'Last-Mile Solutions',
     subtitle: 'The ultimate precision link in your consumer supply chain.',
-    image: '/images/last-mile.jpg',
+    image: '/images/delivery-truck.png',
     tag: 'E-commerce & Retail',
     icon: Package,
     content: "Speed and reliability are the currencies of the modern consumer market. We help retail and lifestyle brands fulfill their customer promises with agile, tech-enabled local distribution.",
@@ -39,7 +39,7 @@ const SERVICE_DATA: Record<string, any> = {
   'corporate': {
     title: 'Enterprise Logistics',
     subtitle: 'High-performance fleet management and consulting for major firms.',
-    image: '/images/hero-bg.jpg',
+    image: '/images/our-fleet.png',
     tag: 'Corporate Services',
     icon: Building,
     content: "Comprehensive logistics ecosystems for large organizations. We don't just move cargo; we manage your entire supply chain lifecycle with dedicated account teams.",

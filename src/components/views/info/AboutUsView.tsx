@@ -7,7 +7,7 @@ export const AboutUsView: React.FC = () => {
     <StaticPageLayout 
       title="Our Story" 
       subtitle="Pioneering the next generation of African logistics through transparency, technology, and trust."
-      heroImage="https://images.unsplash.com/photo-1555448049-81a149819779?auto=format&fit=crop&q=80&w=1920"
+      heroImage="/images/our-story.png"
     >
       <div className="space-y-24">
         {/* Intro Section */}
