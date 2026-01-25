@@ -114,7 +114,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={
            currentUser 
-             ? (currentUser.onboarded 
+             ? (currentUser.onboarded || currentUser.role === UserRole.ADMIN
                  ? <Navigate to={getDashboardPath(currentUser.role)} replace />
                  : <Navigate to="/onboarding" replace />)
              : <LandingPage />
@@ -122,7 +122,7 @@ const App: React.FC = () => {
         <Route path="/contact" element={<ContactView />} />
         <Route path="/auth" element={
            currentUser 
-             ? (currentUser.onboarded 
+             ? (currentUser.onboarded || currentUser.role === UserRole.ADMIN
                  ? <Navigate to={getDashboardPath(currentUser.role)} replace /> 
                  : <Navigate to="/onboarding" replace />)
              : <AuthView />

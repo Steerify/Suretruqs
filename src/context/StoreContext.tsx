@@ -82,64 +82,74 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const fetchAllUserData = async () => {
     const token = localStorage.getItem('token');
-    if (!token) {
+    
+    // If no token exists at all, just stop initializing and stay on current page (App.tsx handles routing)
+    if (!token || token === 'undefined') {
       setIsInitializing(false);
+      setCurrentUser(null);
       return;
     }
 
     try {
+      // Step 1: Validate session identity
       const userRes = await api.get('/auth/me');
       const userData = userRes.data?.data || userRes.data;
       
       if (!userData || (!userData.id && !userData._id)) {
-        throw new Error("Invalid user data received");
+        throw new Error("Payload mismatch: No user identity found");
       }
       
       setCurrentUser(userData);
       setHasTransactionPin(!!userData.transactionPin);
       
-      // Secondary fetches - wrap in separate try/catch to prevent fatal session loss
+      // Step 2: Fetch non-critical dashboard data (Wrapped in safety block)
       try {
+        const userId = userData.id || userData._id;
         let shipmentFilter = '';
         if (userData.role === UserRole.DRIVER) {
-          shipmentFilter = `?driver_id=${userData.id || userData._id}`;
+          shipmentFilter = `?driver_id=${userId}`;
         } else if (userData.role === UserRole.CUSTOMER) {
-          shipmentFilter = `?customer_id=${userData.id || userData._id}`;
+          shipmentFilter = `?customer_id=${userId}`;
         }
         
-        const shipmentsRes = await api.get(`/shipments${shipmentFilter}`);
-        const shipmentsData = shipmentsRes.data?.data || shipmentsRes.data;
+        // Execute fetches in parallel for speed
+        const [shipmentsRes, driversRes, walletRes] = await Promise.all([
+           api.get(`/shipments${shipmentFilter}`).catch(() => ({ data: [] })),
+           (userData.role === UserRole.CUSTOMER || userData.role === UserRole.ADMIN) 
+              ? api.get('/users/drivers').catch(() => ({ data: [] }))
+              : Promise.resolve({ data: [] }),
+           fetchWalletData().catch(() => {})
+        ]);
+
+        const shipmentsData = (shipmentsRes as any).data?.data || (shipmentsRes as any).data;
         setShipments(Array.isArray(shipmentsData) ? shipmentsData : []);
 
-        if (userData.role === UserRole.CUSTOMER || userData.role === UserRole.ADMIN) {
-          const driversRes = await api.get('/users/drivers');
-          const driversData = driversRes.data?.data || driversRes.data;
-          setDrivers(Array.isArray(driversData) ? driversData : []);
-        }
+        const driversData = (driversRes as any).data?.data || (driversRes as any).data;
+        setDrivers(Array.isArray(driversData) ? driversData : []);
 
         if (userData.role === UserRole.ADMIN) {
-           const usersRes = await api.get('/users'); 
+           const usersRes = await api.get('/users').catch(() => ({ data: [] })); 
            const usersData = usersRes.data?.data || usersRes.data;
            const finalUsers = Array.isArray(usersData) ? usersData : [];
            setAllUsers(finalUsers);
            setCustomers(finalUsers.filter((u: User) => u.role === UserRole.CUSTOMER));
         }
 
-        await fetchWalletData();
-
         if (userData.role === UserRole.CUSTOMER) {
-          await fetchInvoices();
+          fetchInvoices().catch(() => {});
         }
 
-        await fetchNotifications();
+        fetchNotifications().catch(() => {});
       } catch (secondaryError) {
-        console.error("Error fetching supplementary dashboard data:", secondaryError);
-        // Non-fatal, user stays logged in
+        console.warn("Supplementary data failed to sync, but session is valid.");
       }
-    } catch (error) {
-      console.error("Critical session initialization error:", error);
-      localStorage.removeItem('token');
-      setCurrentUser(null);
+    } catch (error: any) {
+      console.error("Session integrity check failed:", error.message);
+      // Only clear if we are SURE the token is bad
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        setCurrentUser(null);
+      }
     } finally {
       setIsInitializing(false);
     }

@@ -106,8 +106,8 @@ export const AuthView: React.FC = () => {
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setIsLoading(true);
     try {
-        const role = authMode === 'SIGNUP' ? selectedRole : undefined;
-        await googleLogin(credentialResponse.credential, role);
+        // Always pass the selected identity (Driver/Customer) to help backend on initial signup
+        await googleLogin(credentialResponse.credential, selectedRole);
     } catch (err: any) {
         toast.error(err.message || "Google Auth failed.");
     } finally {
