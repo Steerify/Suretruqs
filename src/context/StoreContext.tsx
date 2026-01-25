@@ -89,37 +89,39 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     try {
       const userRes = await api.get('/auth/me');
-      setCurrentUser(userRes.data);
-      setHasTransactionPin(!!userRes.data.transactionPin);
+      const userData = userRes.data?.data || userRes.data;
+      setCurrentUser(userData);
+      setHasTransactionPin(!!userData.transactionPin);
       
       // Fetch shipments for user
       let shipmentFilter = '';
-      if (userRes.data.role === UserRole.DRIVER) {
-        shipmentFilter = `?driver_id=${userRes.data.id || userRes.data._id}`;
-      } else if (userRes.data.role === UserRole.CUSTOMER) {
-        shipmentFilter = `?customer_id=${userRes.data.id || userRes.data._id}`;
+      if (userData.role === UserRole.DRIVER) {
+        shipmentFilter = `?driver_id=${userData.id || userData._id}`;
+      } else if (userData.role === UserRole.CUSTOMER) {
+        shipmentFilter = `?customer_id=${userData.id || userData._id}`;
       }
       
       const shipmentsRes = await api.get(`/shipments${shipmentFilter}`);
-      setShipments(shipmentsRes.data);
+      setShipments(shipmentsRes.data?.data || shipmentsRes.data || []);
 
       // Fetch available drivers (if customer or admin)
-      if (userRes.data.role === UserRole.CUSTOMER || userRes.data.role === UserRole.ADMIN) {
+      if (userData.role === UserRole.CUSTOMER || userData.role === UserRole.ADMIN) {
         const driversRes = await api.get('/users/drivers');
-        setDrivers(driversRes.data);
+        setDrivers(driversRes.data?.data || driversRes.data || []);
       }
 
       // Fetch customers and all users (if admin)
-      if (userRes.data.role === UserRole.ADMIN) {
+      if (userData.role === UserRole.ADMIN) {
          const usersRes = await api.get('/users'); 
-         console.log('Fetched All Users:', usersRes.data.length);
-         setAllUsers(usersRes.data);
-         setCustomers(usersRes.data.filter((u: User) => u.role === UserRole.CUSTOMER));
+         const usersData = usersRes.data?.data || usersRes.data || [];
+         console.log('Fetched All Users:', usersData.length);
+         setAllUsers(usersData);
+         setCustomers(usersData.filter((u: User) => u.role === UserRole.CUSTOMER));
       }
 
       await fetchWalletData();
 
-      if (userRes.data.role === UserRole.CUSTOMER) {
+      if (userData.role === UserRole.CUSTOMER) {
         await fetchInvoices();
       }
 
@@ -269,20 +271,25 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const res = await api.get('/chat/history/all');
         const chatData: Record<string, ChatMessage[]> = {};
         
-        res.data.forEach((m: any) => {
-            const sId = m.shipmentId;
-            if (!chatData[sId]) chatData[sId] = [];
-            
-            chatData[sId].unshift({
-                id: m._id,
-                senderId: m.senderId._id || m.senderId,
-                senderName: m.senderId.name || 'User',
-                shipmentId: m.shipmentId,
-                text: m.text,
-                timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                isMe: (m.senderId._id || m.senderId) === (currentUser.id || (currentUser as any)._id)
-            });
-        });
+        // Handle wrapped/unwrapped data
+        const messagesArray = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        
+        if (Array.isArray(messagesArray)) {
+          messagesArray.forEach((m: any) => {
+              const sId = m.shipmentId;
+              if (!chatData[sId]) chatData[sId] = [];
+              
+              chatData[sId].unshift({
+                  id: m._id,
+                  senderId: m.senderId._id || m.senderId,
+                  senderName: m.senderId.name || 'User',
+                  shipmentId: m.shipmentId,
+                  text: m.text,
+                  timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  isMe: (m.senderId._id || m.senderId) === (currentUser.id || (currentUser as any)._id)
+              });
+          });
+        }
 
         setMessages(chatData);
       } catch (err) {
@@ -450,9 +457,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const fetchWalletData = async () => {
     try {
       const balanceRes = await api.get('/wallet/balance');
-      setWalletBalance(balanceRes.data.balance || 0);
+      const balanceData = balanceRes.data?.data ?? balanceRes.data;
+      setWalletBalance(balanceData.balance ?? balanceData ?? 0);
+      
       const historyRes = await api.get('/wallet/history');
-      setTransactions(historyRes.data);
+      setTransactions(historyRes.data?.data || historyRes.data || []);
     } catch (err) {
       console.error('Wallet Fetch Error:', err);
     }
@@ -522,7 +531,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const fetchNotifications = async () => {
     try {
       const res = await api.get('/notifications');
-      setNotifications(res.data);
+      setNotifications(res.data?.data || res.data || []);
     } catch (err) {
       console.error('Error fetching notifications:', err);
     }
@@ -549,7 +558,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const fetchInvoices = async () => {
     try {
       const res = await api.get('/payments/invoices');
-      setInvoices(res.data);
+      setInvoices(res.data?.data || res.data || []);
     } catch (err) {
       console.error('Error fetching invoices:', err);
     }
