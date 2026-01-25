@@ -90,14 +90,14 @@ export const AdminChatModal: React.FC<AdminChatModalProps> = ({
             <div key={m.id} className={`flex ${m.isMe ? 'justify-end' : 'justify-start'} group max-w-full`}>
               <div className={`max-w-[85%] px-5 py-3 text-sm font-medium shadow-sm transition-all hover:shadow-md ${
                 m.isMe 
-                  ? 'bg-brand-primary text-white rounded-[1.25rem] rounded-br-none' 
+                  ? 'bg-slate-900 text-white rounded-[1.25rem] rounded-br-none' 
                   : 'bg-white text-slate-700 rounded-[1.25rem] rounded-bl-none border border-slate-100'
               }`}>
                 {!m.isMe && (
-                  <p className={`text-[10px] font-black mb-1 uppercase tracking-wider ${isDriver ? 'text-brand-orange' : 'text-brand-primary'}`}>{chatWith}</p>
+                  <p className={`text-[10px] font-black mb-1 uppercase tracking-wider ${isDriver ? 'text-brand-orange' : 'text-slate-900'}`}>{chatWith}</p>
                 )}
-                <p className="leading-relaxed whitespace-pre-wrap break-words">{m.text}</p>
-                <div className={`text-[9px] font-bold mt-1.5 flex items-center justify-end gap-1 ${m.isMe ? 'text-blue-100' : 'text-slate-300'}`}>
+                <p className="leading-relaxed whitespace-pre-wrap break-words text-[13px]">{m.text}</p>
+                <div className={`text-[9px] font-bold mt-1.5 flex items-center justify-end gap-1 ${m.isMe ? 'text-slate-400' : 'text-slate-300'}`}>
                   {m.timestamp}
                 </div>
               </div>

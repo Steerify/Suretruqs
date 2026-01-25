@@ -4,6 +4,7 @@ import { Button } from '../../ui/Button';
 import { Driver, Shipment, ShipmentStatus } from '../../../types';
 import { Truck, Star, Phone, MessageSquare, MapPin, Search, Filter, Circle, Clock, MoreHorizontal } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
+import toast from 'react-hot-toast';
 
 export const AdminDriversView = ({ 
     drivers, 
@@ -146,13 +147,13 @@ export const AdminDriversView = ({
                                 <div className="flex gap-3">
                                     <Button 
                                         variant="secondary" 
-                                        className="flex-1 rounded-xl font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 border-none"
-                                        onClick={() => window.open(`tel:${driver.id}`)} // Using ID as placeholder for phone
+                                        className="flex-1 rounded-xl font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 border-none items-center justify-center flex"
+                                        onClick={() => toast.error("Call feature not yet available")}
                                     >
                                         <Phone size={16} className="mr-2" /> Call
                                     </Button>
                                     <Button 
-                                        className="flex-1 rounded-xl font-bold shadow-lg shadow-brand-primary/20"
+                                        className="flex-1 rounded-xl font-bold shadow-lg shadow-brand-primary/20 items-center justify-center flex"
                                         onClick={() => onMessageDriver && onMessageDriver(driver.id, driver.name)}
                                     >
                                         <MessageSquare size={16} className="mr-2" /> Chat
