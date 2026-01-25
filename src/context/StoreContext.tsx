@@ -90,47 +90,54 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     try {
       const userRes = await api.get('/auth/me');
       const userData = userRes.data?.data || userRes.data;
+      
+      if (!userData || (!userData.id && !userData._id)) {
+        throw new Error("Invalid user data received");
+      }
+      
       setCurrentUser(userData);
       setHasTransactionPin(!!userData.transactionPin);
       
-      // Fetch shipments for user
-      let shipmentFilter = '';
-      if (userData.role === UserRole.DRIVER) {
-        shipmentFilter = `?driver_id=${userData.id || userData._id}`;
-      } else if (userData.role === UserRole.CUSTOMER) {
-        shipmentFilter = `?customer_id=${userData.id || userData._id}`;
+      // Secondary fetches - wrap in separate try/catch to prevent fatal session loss
+      try {
+        let shipmentFilter = '';
+        if (userData.role === UserRole.DRIVER) {
+          shipmentFilter = `?driver_id=${userData.id || userData._id}`;
+        } else if (userData.role === UserRole.CUSTOMER) {
+          shipmentFilter = `?customer_id=${userData.id || userData._id}`;
+        }
+        
+        const shipmentsRes = await api.get(`/shipments${shipmentFilter}`);
+        const shipmentsData = shipmentsRes.data?.data || shipmentsRes.data;
+        setShipments(Array.isArray(shipmentsData) ? shipmentsData : []);
+
+        if (userData.role === UserRole.CUSTOMER || userData.role === UserRole.ADMIN) {
+          const driversRes = await api.get('/users/drivers');
+          const driversData = driversRes.data?.data || driversRes.data;
+          setDrivers(Array.isArray(driversData) ? driversData : []);
+        }
+
+        if (userData.role === UserRole.ADMIN) {
+           const usersRes = await api.get('/users'); 
+           const usersData = usersRes.data?.data || usersRes.data;
+           const finalUsers = Array.isArray(usersData) ? usersData : [];
+           setAllUsers(finalUsers);
+           setCustomers(finalUsers.filter((u: User) => u.role === UserRole.CUSTOMER));
+        }
+
+        await fetchWalletData();
+
+        if (userData.role === UserRole.CUSTOMER) {
+          await fetchInvoices();
+        }
+
+        await fetchNotifications();
+      } catch (secondaryError) {
+        console.error("Error fetching supplementary dashboard data:", secondaryError);
+        // Non-fatal, user stays logged in
       }
-      
-      const shipmentsRes = await api.get(`/shipments${shipmentFilter}`);
-      const shipmentsDataRaw = shipmentsRes.data?.data || shipmentsRes.data;
-      setShipments(Array.isArray(shipmentsDataRaw) ? shipmentsDataRaw : []);
-
-      // Fetch available drivers (if customer or admin)
-      if (userData.role === UserRole.CUSTOMER || userData.role === UserRole.ADMIN) {
-        const driversRes = await api.get('/users/drivers');
-        const driversDataRaw = driversRes.data?.data || driversRes.data;
-        setDrivers(Array.isArray(driversDataRaw) ? driversDataRaw : []);
-      }
-
-      // Fetch customers and all users (if admin)
-      if (userData.role === UserRole.ADMIN) {
-         const usersRes = await api.get('/users'); 
-         const usersDataRaw = usersRes.data?.data || usersRes.data;
-         const usersData = Array.isArray(usersDataRaw) ? usersDataRaw : [];
-         console.log('Fetched All Users:', usersData.length);
-         setAllUsers(usersData);
-         setCustomers(usersData.filter((u: User) => u.role === UserRole.CUSTOMER));
-      }
-
-      await fetchWalletData();
-
-      if (userData.role === UserRole.CUSTOMER) {
-        await fetchInvoices();
-      }
-
-      await fetchNotifications();
     } catch (error) {
-      console.error("Initialization error:", error);
+      console.error("Critical session initialization error:", error);
       localStorage.removeItem('token');
       setCurrentUser(null);
     } finally {
