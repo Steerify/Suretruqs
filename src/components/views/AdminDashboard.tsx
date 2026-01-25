@@ -20,6 +20,7 @@ import { AdminUsersView } from '../dashboard/admin/AdminUsersView';
 import { AdminFinancesView } from '../dashboard/admin/AdminFinancesView';
 import { AdminSupportView } from '../dashboard/admin/AdminSupportView';
 import { AdminSettingsView } from '../dashboard/admin/AdminSettingsView';
+import { AdminDriversView } from '../dashboard/admin/AdminDriversView';
 
 export const AdminDashboard: React.FC = () => {
     const { 
@@ -376,6 +377,7 @@ export const AdminDashboard: React.FC = () => {
                         { id: 'overview', label: 'Command Center', icon: Activity },
                         { id: 'shipments', label: 'Logistics Hub', icon: Package },
                         { id: 'driver-requests', label: 'Job Dispatch', icon: ArrowUpRight },
+                        { id: 'drivers', label: 'Fleet', icon: Truck },
                         { id: 'users', label: 'User Directory', icon: Users },
                         { id: 'finances', label: 'Treasury', icon: Wallet },
                         { id: 'support', label: 'Operations Chat', icon: MessageSquare },
@@ -539,6 +541,15 @@ export const AdminDashboard: React.FC = () => {
                                 />
                             </div>
                         )}
+                        {activeTab === 'drivers' && (
+                            <AdminDriversView 
+                                drivers={drivers} 
+                                shipments={shipments}
+                                onMessageDriver={(dId, name) => {
+                                    setChatModal({ shipmentId: 'ADMIN_DM', chatWith: 'driver', recipientName: name, recipientId: dId });
+                                }}
+                            />
+                        )}
                         {activeTab === 'users' && (
                             <AdminUsersView 
                                 users={allUsers} 
@@ -558,7 +569,7 @@ export const AdminDashboard: React.FC = () => {
                             />
                         )}
                         {activeTab === 'settings' && <AdminSettingsView />}
-                        {['overview', 'shipments', 'driver-requests', 'users', 'finances', 'support', 'settings'].indexOf(activeTab) === -1 && (
+                        {['overview', 'shipments', 'driver-requests', 'drivers', 'users', 'finances', 'support', 'settings'].indexOf(activeTab) === -1 && (
                             <div className="flex flex-col items-center justify-center h-[600px] text-slate-400 border-4 border-dashed border-slate-200 rounded-[3rem] bg-white group hover:border-brand-primary/20 transition-all duration-700">
                                 <div className="p-8 bg-slate-50 rounded-[2.5rem] mb-6 group-hover:rotate-12 transition-transform duration-500">
                                     <Activity size={64} className="text-slate-200 group-hover:text-brand-primary/20" />
