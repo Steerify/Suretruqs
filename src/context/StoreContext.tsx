@@ -320,8 +320,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const login = async (email: string, password: string) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      setCurrentUser(response.data.user); // Set immediately
+      const data = response.data?.data || response.data;
+      localStorage.setItem('token', data.token);
+      setCurrentUser(data.user); // Set immediately
       await fetchAllUserData();
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || 'Login failed');
@@ -331,8 +332,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const signup = async (userData: any) => {
     try {
       const response = await api.post('/auth/register', userData);
-      localStorage.setItem('token', response.data.token);
-      setCurrentUser(response.data.user); // Set immediately for instant redirect
+      const data = response.data?.data || response.data;
+      localStorage.setItem('token', data.token);
+      setCurrentUser(data.user); // Set immediately for instant redirect
       await fetchAllUserData(); // Fetch the rest (wallet, shipments, etc.)
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Signup failed');
@@ -342,8 +344,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const googleLogin = async (token: string, role?: UserRole) => {
     try {
         const response = await api.post('/auth/google', { token, role });
-        localStorage.setItem('token', response.data.token);
-        setCurrentUser(response.data.user);
+        const data = response.data?.data || response.data;
+        localStorage.setItem('token', data.token);
+        setCurrentUser(data.user);
         await fetchAllUserData();
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Google Auth failed');
