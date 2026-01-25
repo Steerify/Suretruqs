@@ -23,7 +23,9 @@ export const AdminFinancesView: React.FC = () => {
         const fetchTransactions = async () => {
             try {
                 const res = await api.get('/admin/transactions');
-                setTransactions(res.data);
+                // Handle wrapped/unwrapped data
+                const rawData = res.data?.data || res.data;
+                setTransactions(Array.isArray(rawData) ? rawData : []);
             } catch (err) {
                 console.error("Failed to fetch admin transactions", err);
             } finally {

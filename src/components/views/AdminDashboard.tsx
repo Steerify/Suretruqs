@@ -56,9 +56,9 @@ export const AdminDashboard: React.FC = () => {
 
     // Data Aggregation
     const stats = [
-        { label: 'Total Revenue', value: `₦${(shipments.reduce((acc, s) => acc + (s.price || 0), 0)).toLocaleString()}`, icon: Wallet, color: 'text-white', bg: 'bg-gradient-to-br from-brand-dark to-slate-800' },
-        { label: 'Active Users', value: customers.length.toString(), icon: Users, color: 'text-brand-primary', bg: 'bg-white' },
-        { label: 'Fleet Status', value: drivers.length.toString(), icon: Truck, color: 'text-brand-orange', bg: 'bg-white' },
+        { label: 'Total Revenue', value: `₦${((shipments || []).reduce((acc, s) => acc + (s.price || 0), 0)).toLocaleString()}`, icon: Wallet, color: 'text-white', bg: 'bg-gradient-to-br from-brand-dark to-slate-800' },
+        { label: 'Active Users', value: (customers || []).length.toString(), icon: Users, color: 'text-brand-primary', bg: 'bg-white' },
+        { label: 'Fleet Status', value: (drivers || []).length.toString(), icon: Truck, color: 'text-brand-orange', bg: 'bg-white' },
         { label: 'Completion Rate', value: '94%', icon: Activity, color: 'text-brand-primary', bg: 'bg-blue-50' },
     ];
 
@@ -224,7 +224,7 @@ export const AdminDashboard: React.FC = () => {
                             <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-brand-orange/10">
                                 <AlertTriangle className="text-brand-orange" size={20} />
                                 <div>
-                                    <p className="text-xs font-black text-slate-900">{shipments.filter(s => s.status === ShipmentStatus.PENDING).length} Re-assignments</p>
+                                    <p className="text-xs font-black text-slate-900">{(shipments || []).filter(s => s.status === ShipmentStatus.PENDING).length} Re-assignments</p>
                                     <p className="text-[10px] text-slate-500 font-medium mt-0.5">Urgent driver allocation needed</p>
                                 </div>
                             </div>
@@ -236,7 +236,7 @@ export const AdminDashboard: React.FC = () => {
     );
 
     const ShipmentsTab = () => {
-        const filtered = shipments.filter(s => {
+        const filtered = (shipments || []).filter(s => {
             if (shipmentFilter === 'Active') {
                 return [ShipmentStatus.ASSIGNED, ShipmentStatus.PICKED_UP, ShipmentStatus.IN_TRANSIT, ShipmentStatus.PENDING].includes(s.status);
             }

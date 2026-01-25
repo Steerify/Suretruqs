@@ -104,9 +104,9 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ users, drivers, 
     const [roleFilter, setRoleFilter] = useState<'ALL' | 'CUSTOMER' | 'DRIVER' | 'ADMIN'>('ALL');
     const [selectedUser, setSelectedUser] = useState<any>(null);
 
-    const enrichedUsers = users.map(u => {
+    const enrichedUsers = (users || []).map(u => {
         if (u.role === 'DRIVER') {
-            const driverInfo = drivers.find(d => d.id === u.id || (d as any)._id === (u as any)._id);
+            const driverInfo = (drivers || []).find(d => d.id === u.id || (d as any)._id === (u as any)._id);
             return driverInfo ? { ...u, ...driverInfo } : u;
         }
         return u;

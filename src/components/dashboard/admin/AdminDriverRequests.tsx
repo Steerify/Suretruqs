@@ -67,15 +67,15 @@ export const AdminDriverRequests: React.FC<AdminDriverRequestsProps> = ({
   const [filterStatus, setFilterStatus] = useState<'pending' | 'assigned'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const pendingRequests = shipments.filter(s => s.status === ShipmentStatus.PENDING);
-  const assignedRequests = shipments.filter(s => s.status === ShipmentStatus.ASSIGNED);
+  const pendingRequests = (shipments || []).filter(s => s.status === ShipmentStatus.PENDING);
+  const assignedRequests = (shipments || []).filter(s => s.status === ShipmentStatus.ASSIGNED);
 
   const displayedShipments = (filterStatus === 'pending' ? pendingRequests : assignedRequests).filter(s => 
     s.trackingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.pickup.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  const availableDrivers = drivers.filter(d => d.isOnline);
+  const availableDrivers = (drivers || []).filter(d => d.isOnline);
 
   const handleAssign = () => {
     if (!selectedShipment || !selectedDriver) return;

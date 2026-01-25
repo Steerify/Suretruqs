@@ -102,12 +102,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
       
       const shipmentsRes = await api.get(`/shipments${shipmentFilter}`);
-      setShipments(shipmentsRes.data?.data || shipmentsRes.data || []);
+      const shipmentsDataRaw = shipmentsRes.data?.data || shipmentsRes.data;
+      setShipments(Array.isArray(shipmentsDataRaw) ? shipmentsDataRaw : []);
 
       // Fetch available drivers (if customer or admin)
       if (userData.role === UserRole.CUSTOMER || userData.role === UserRole.ADMIN) {
         const driversRes = await api.get('/users/drivers');
-        setDrivers(driversRes.data?.data || driversRes.data || []);
+        const driversDataRaw = driversRes.data?.data || driversRes.data;
+        setDrivers(Array.isArray(driversDataRaw) ? driversDataRaw : []);
       }
 
       // Fetch customers and all users (if admin)
@@ -462,7 +464,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setWalletBalance(balanceData.balance ?? balanceData ?? 0);
       
       const historyRes = await api.get('/wallet/history');
-      setTransactions(historyRes.data?.data || historyRes.data || []);
+      const historyDataRaw = historyRes.data?.data || historyRes.data;
+      setTransactions(Array.isArray(historyDataRaw) ? historyDataRaw : []);
     } catch (err) {
       console.error('Wallet Fetch Error:', err);
     }
@@ -532,7 +535,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const fetchNotifications = async () => {
     try {
       const res = await api.get('/notifications');
-      setNotifications(res.data?.data || res.data || []);
+      const notificationsDataRaw = res.data?.data || res.data;
+      setNotifications(Array.isArray(notificationsDataRaw) ? notificationsDataRaw : []);
     } catch (err) {
       console.error('Error fetching notifications:', err);
     }
@@ -559,7 +563,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const fetchInvoices = async () => {
     try {
       const res = await api.get('/payments/invoices');
-      setInvoices(res.data?.data || res.data || []);
+      const invoicesDataRaw = res.data?.data || res.data;
+      setInvoices(Array.isArray(invoicesDataRaw) ? invoicesDataRaw : []);
     } catch (err) {
       console.error('Error fetching invoices:', err);
     }
