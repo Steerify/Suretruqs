@@ -7,7 +7,7 @@ export const FleetView: React.FC = () => {
     <StaticPageLayout 
       title="Our Fleet" 
       subtitle="A distributed network of high-performance vehicles, engineered for reliability and safety."
-      heroImage="/images/interstate-haulage.jpg"
+      heroImage="https://images.unsplash.com/photo-1598211686290-a8ef209d87c5?auto=format&fit=crop&q=80&w=1920"
     >
       <div className="space-y-24">
         <div className="max-w-4xl">
@@ -27,21 +27,21 @@ export const FleetView: React.FC = () => {
               cap: '1 - 3 Tons', 
               specs: { wheels: '4 Wheels', drive: '4x2', fuel: 'Diesel/Petrol' },
               bestFor: 'Last-mile delivery, e-commerce fulfillment, and local furniture moves.',
-              img: '/images/last-mile.jpg'
+              img: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80&w=800'
             },
             { 
               type: 'Medium Rigid Trucks', 
               cap: '5 - 15 Tons', 
               specs: { wheels: '6-10 Wheels', drive: '4x2 / 6x2', fuel: 'Diesel' },
               bestFor: 'Regional distribution, construction materials, and cold-chain logistics.',
-              img: '/images/delivery-truck.jpg'
+              img: 'https://images.unsplash.com/photo-1598211686290-a8ef209d87c5?auto=format&fit=crop&q=80&w=800'
             },
             { 
               type: 'Heavy Duty Trailers', 
               cap: '30+ Tons',
               specs: { wheels: '12-22 Wheels', drive: '6x4', fuel: 'High-Sulfur Diesel' },
               bestFor: 'Inter-state haulage, industrial machinery, and bulk FMCG distribution.',
-              img: '/images/fleet-truck.jpg'
+              img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800'
             }
           ].map((v, i) => (
             <div key={i} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-500">

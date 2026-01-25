@@ -40,7 +40,7 @@ export const CareersView: React.FC = () => {
             ))}
         </div>
 
-        {/* Open Roles */}
+        {/* Open Roles - Updated to show no jobs */}
         <div className="relative">
           <div className="flex justify-between items-end mb-12">
              <div>
@@ -48,36 +48,18 @@ export const CareersView: React.FC = () => {
                 <p className="text-slate-500 font-medium">Be part of the founding teams in these departments.</p>
              </div>
              <div className="hidden md:block">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-full border border-slate-200">3 Roles Available</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-full border border-slate-200">0 Roles Available</span>
              </div>
           </div>
 
-          <div className="space-y-4">
-            {[
-              { role: "Senior Frontend Engineer", dept: "Engineering", type: "Remote", icon: Zap, status: "Urgent" },
-              { role: "Operations Lead (Lagos)", dept: "Logistics", type: "On-site", icon: MapPin, status: "New" },
-              { role: "Product Designer", dept: "Design", type: "Remote", icon: Star, status: "Active" }
-            ].map((j, i) => (
-              <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-10 bg-white border border-slate-100 rounded-[2.5rem] hover:border-brand-primary/20 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] transition-all group cursor-pointer relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-2 h-full bg-brand-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="mb-4 sm:mb-0">
-                  <div className="flex items-center gap-3 mb-2">
-                     <h4 className="font-black text-2xl text-slate-900 group-hover:text-brand-primary transition-colors">{j.role}</h4>
-                     <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
-                        j.status === 'Urgent' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
-                     }`}>{j.status}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-slate-400 text-xs font-bold uppercase tracking-widest">
-                    <span className="flex items-center gap-1.5"><Briefcase size={14} className="text-brand-orange"/> {j.dept}</span>
-                    <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
-                    <span className="flex items-center gap-1.5"><MapPin size={14}/> {j.type}</span>
-                  </div>
-                </div>
-                <button className="bg-slate-900 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-[0.1em] hover:bg-brand-primary transition-all shadow-lg hover:shadow-brand-primary/20 group-hover:scale-105">
-                   View Details
-                </button>
-              </div>
-            ))}
+          <div className="bg-white border border-slate-100 rounded-[2.5rem] p-16 text-center shadow-sm">
+             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                <Briefcase size={40} />
+             </div>
+             <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-4">No positions currently available</h4>
+             <p className="text-slate-500 max-w-md mx-auto font-medium">
+                We're currently operating at full capacity, but we're always interested in meeting exceptional talent. Check back later or send an open application.
+             </p>
           </div>
         </div>
 
@@ -88,9 +70,12 @@ export const CareersView: React.FC = () => {
                 <h4 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Don't see your role?</h4>
                 <p className="text-slate-400 max-w-xl mx-auto font-medium mb-10 leading-relaxed">We're always looking for brilliant minds. If you believe you can add massive value to SureTruqs, send us an open application.</p>
                 <div className="flex flex-col sm:flex-row justify-center gap-6">
-                    <button className="bg-white text-slate-900 px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-100 transition-colors">
+                    <a 
+                      href="mailto:steerifygroup@gmail.com"
+                      className="inline-block bg-white text-slate-900 px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-100 transition-colors shadow-2xl shadow-white/5"
+                    >
                         General Application
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

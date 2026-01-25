@@ -151,8 +151,8 @@ export const LandingPage: React.FC = () => {
         {/* Full Background Image */}
         <div className="absolute inset-0">
           <img 
-            src="/images/hero-bg.jpg" 
-            alt="Logistics Ship" 
+            src="https://images.unsplash.com/photo-1580674285054-bed31e145f59?auto=format&fit=crop&q=80&w=1920" 
+            alt="Modern African Logistics Hub" 
             className="w-full h-full object-cover"
           />
           {/* Lighter Gradient Overlay */}
@@ -163,14 +163,14 @@ export const LandingPage: React.FC = () => {
         <div className="relative h-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center">
           <div className="max-w-4xl pt-20">
             <h1 className="text-6xl md:text-8xl font-black text-white leading-[0.95] tracking-tight mb-8 drop-shadow-sm overflow-hidden">
-              <span className="block hero-text-line">MOST AFFORDABLE</span>
-              <span className="block hero-text-line">WAY TO SHIP</span>
-              <span className="block hero-text-line text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-yellow-400">PRODUCTS</span>
+              <span className="block hero-text-line">RELIABLE</span>
+              <span className="block hero-text-line">TRUCK LOGISTICS</span>
+              <span className="block hero-text-line text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-yellow-400">MADE SIMPLE</span>
             </h1>
             
             <div className="flex flex-col sm:flex-row gap-6 items-start max-w-2xl overflow-hidden mb-12">
                <p className="text-slate-100 text-lg md:text-xl leading-relaxed font-light drop-shadow-sm hero-sub">
-                  Whether you're shipping for business, industrial projects, or seasonal demands, our logistics network ensures your cargo arrives safely and on time.
+                  Connect with verified truck drivers across the nation. From heavy haulage to last-mile delivery, we provide the most efficient way to move your freight.
                </p>
             </div>
 
@@ -207,9 +207,9 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <div className="h-40 rounded-2xl overflow-hidden relative shadow-inner group">
                       <img 
-                        src="/images/delivery-truck.jpg" 
+                        src="https://images.unsplash.com/photo-1598211686290-a8ef209d87c5?auto=format&fit=crop&q=80&w=800" 
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                        alt="Delivery Truck"
+                        alt="Logistics Fleet"
                       />
                       <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold shadow-sm text-slate-900 flex items-center gap-2">
                          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -234,9 +234,9 @@ export const LandingPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                {[
-                  { title: 'Inter-State Haulage', img: '/images/interstate-haulage.jpg', icon: Truck, color: 'bg-blue-100 text-blue-600', desc: 'Reliable long-distance heavy freight hauling across borders.' },
-                  { title: 'Last-Mile Delivery', img: '/images/last-mile.jpg', icon: Package, color: 'bg-orange-100 text-orange-600', desc: 'Fast and secure local last-mile deliveries for your customers.' },
-                  { title: 'Corporate Fleets', img: '/images/hero-bg.jpg', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated logistics management and corporate fleet solutions.' }
+                  { title: 'Inter-State Haulage', img: 'https://images.unsplash.com/photo-1598211686290-a8ef209d87c5?auto=format&fit=crop&q=80&w=1200', icon: Truck, color: 'bg-blue-100 text-blue-600', desc: 'Reliable long-distance heavy freight hauling across borders.' },
+                  { title: 'Last-Mile Delivery', img: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80&w=1200', icon: Package, color: 'bg-orange-100 text-orange-600', desc: 'Fast and secure local last-mile deliveries for your customers.' },
+                  { title: 'Corporate Fleets', img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200', icon: Building, color: 'bg-slate-100 text-slate-600', desc: 'Dedicated logistics management and corporate fleet solutions.' }
                ].map((service, idx) => (
                   <div key={idx} className="service-card group relative rounded-[2.5rem] overflow-hidden h-[450px] cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500">
                      <img src={service.img} alt={service.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-115" />

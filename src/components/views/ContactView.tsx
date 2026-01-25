@@ -1,15 +1,24 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
-import { Mail, Phone, MapPin, Send, ArrowLeft, MessageSquare, Building, Twitter, Linkedin, Facebook, Instagram, CheckCircle2, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, ArrowLeft, MessageSquare, CheckCircle2, Globe } from 'lucide-react';
 import { Footer } from '../layout/Footer';
 import gsap from 'gsap';
+import api from '../../utils/api';
+import toast from 'react-hot-toast';
 
 export const ContactView: React.FC = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const [formStatus, setFormStatus] = useState<'IDLE' | 'SENDING' | 'SENT'>('IDLE');
   const [scrolled, setScrolled] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    message: ''
+  });
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -31,10 +40,22 @@ export const ContactView: React.FC = () => {
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormStatus('SENDING');
-    setTimeout(() => setFormStatus('SENT'), 1500);
+    
+    try {
+      await api.post('/support/contact', formData);
+      setFormStatus('SENT');
+      toast.success('Message sent successfully!');
+    } catch (error: any) {
+      setFormStatus('IDLE');
+      toast.error(error.response?.data?.message || 'Failed to send message. Please try again.');
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   return (
@@ -72,7 +93,7 @@ export const ContactView: React.FC = () => {
 
                <div className="space-y-12">
                   {[
-                    { icon: Mail, label: 'Technical Support', val: 'support@suretruqs.com', color: 'text-brand-primary' },
+                    { icon: Mail, label: 'Technical Support', val: 'steerifygroup@gmail.com', color: 'text-brand-primary' },
                     { icon: Phone, label: 'Direct Line', val: '+234 (0) 700 SURE-TRQS', color: 'text-brand-orange' },
                     { icon: Globe, label: 'Lagos Headquarters', val: 'Victoria Island, Lagos, NG.', color: 'text-slate-600' }
                   ].map((item, idx) => (
@@ -102,7 +123,7 @@ export const ContactView: React.FC = () => {
                         </div>
                         <h3 className="text-3xl font-black text-slate-900 mb-4 uppercase tracking-tight">Protocol Initiated!</h3>
                         <p className="text-slate-500 max-w-xs mx-auto mb-10 font-medium font-lg leading-relaxed">Your message has been received by our control center. We'll be in touch within 2 hours.</p>
-                        <button onClick={() => setFormStatus('IDLE')} className="text-sm font-black text-brand-primary uppercase tracking-widest hover:underline">New Message</button>
+                        <button onClick={() => { setFormStatus('IDLE'); setFormData({ firstName:'', lastName:'', email:'', message:''}); }} className="text-sm font-black text-brand-primary uppercase tracking-widest hover:underline">New Message</button>
                      </div>
                   ) : (
                      <form onSubmit={handleSubmit} className="space-y-8">
@@ -114,27 +135,59 @@ export const ContactView: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">First Name</label>
-                              <input required type="text" className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 outline-none transition-all font-bold text-slate-900" placeholder="John" />
+                              <input 
+                                required 
+                                type="text" 
+                                name="firstName"
+                                value={formData.firstName}
+                                onChange={handleChange}
+                                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 outline-none transition-all font-bold text-slate-900" 
+                                placeholder="John" 
+                              />
                            </div>
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Last Name</label>
-                              <input required type="text" className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 outline-none transition-all font-bold text-slate-900" placeholder="Doe" />
+                              <input 
+                                required 
+                                type="text" 
+                                name="lastName"
+                                value={formData.lastName}
+                                onChange={handleChange}
+                                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 outline-none transition-all font-bold text-slate-900" 
+                                placeholder="Doe" 
+                              />
                            </div>
                         </div>
 
                         <div className="space-y-3">
                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Institutional Email</label>
-                           <input required type="email" className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 outline-none transition-all font-bold text-slate-900" placeholder="john@company.com" />
+                           <input 
+                            required 
+                            type="email" 
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 outline-none transition-all font-bold text-slate-900" 
+                            placeholder="john@company.com" 
+                           />
                         </div>
 
                         <div className="space-y-3">
                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Message Protocol</label>
-                           <textarea required rows={5} className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 outline-none transition-all font-bold text-slate-900 resize-none" placeholder="Describe your logistical needs..."></textarea>
+                           <textarea 
+                            required 
+                            name="message"
+                            value={formData.message}
+                            onChange={handleChange}
+                            rows={5} 
+                            className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 outline-none transition-all font-bold text-slate-900 resize-none" 
+                            placeholder="Describe your logistical needs..."
+                           ></textarea>
                         </div>
 
                         <button 
                            type="submit" 
-                           className="w-full py-5 rounded-2xl bg-slate-900 text-white font-black uppercase text-xs tracking-[0.2em] shadow-2xl shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                           className="w-full py-5 rounded-2xl bg-slate-900 text-white font-black uppercase text-xs tracking-[0.2em] shadow-2xl shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                            disabled={formStatus === 'SENDING'}
                         >
                            {formStatus === 'SENDING' ? 'Processing...' : <><Send size={16} /> Disintegrate Barriers</>}
