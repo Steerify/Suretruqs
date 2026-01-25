@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { io, Socket } from 'socket.io-client';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
-import { UserRole, Shipment, User, ShipmentStatus, Driver, ChatMessage, Transaction, Invoice, Notification } from '../types';
+import { UserRole, Shipment, User, ShipmentStatus, Driver, ChatMessage, Transaction, Invoice, Notification, Bank } from '../types';
 
 const SOCKET_URL = (import.meta as any).env.VITE_SOCKET_URL || 'http://localhost:5000';
 const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api';
@@ -26,6 +26,7 @@ interface StoreContextType {
   adminNotifications: any[];
   notifications: Notification[];
   hasTransactionPin: boolean;
+  banks: Bank[];
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
@@ -56,6 +57,7 @@ interface StoreContextType {
   markAllNotificationsAsRead: () => Promise<void>;
   getSettings: () => Promise<any>;
   updateSettings: (settings: any) => Promise<any>;
+  fetchBanks: () => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
@@ -78,6 +80,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [adminNotifications, setAdminNotifications] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [hasTransactionPin, setHasTransactionPin] = useState(false);
+  const [banks, setBanks] = useState<Bank[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
 
   const fetchAllUserData = async () => {
@@ -590,6 +593,18 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  const fetchBanks = async () => {
+    try {
+      const res = await api.get('/wallet/banks');
+      const banksData = res.data?.data || res.data;
+      if (Array.isArray(banksData)) {
+          setBanks(banksData);
+      }
+    } catch (err) {
+      console.error('Error fetching banks:', err);
+    }
+  };
+
   return (
     <StoreContext.Provider value={{
       currentUser,
@@ -649,11 +664,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           const res = await api.get('/admin/settings');
           return res.data?.data || res.data;
       },
-      updateSettings: async (settings: any) => {
-          const res = await api.put('/admin/settings', settings);
-          toast.success("System settings updated successfully");
-          return res.data;
+      updateSettings: (settings: any) => {
+          return api.put('/admin/settings', settings).then(res => {
+              toast.success("System settings updated successfully");
+              return res.data;
+          });
       },
+      fetchBanks,
       refreshData: fetchAllUserData
     }}>
       {children}

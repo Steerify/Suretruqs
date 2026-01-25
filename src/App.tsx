@@ -15,6 +15,7 @@ import { FleetView } from './components/views/info/FleetView';
 import { CareersView } from './components/views/info/CareersView';
 import { ServiceDetailView } from './components/views/info/ServiceDetailView';
 import { SupportView } from './components/views/info/SupportView';
+import { WalletVerifyPage } from './components/views/WalletVerifyPage';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { UserRole } from './types';
 import { useStore } from './context/StoreContext';
@@ -160,6 +161,7 @@ const App: React.FC = () => {
         <Route path="/careers" element={<CareersView />} />
         <Route path="/services/:slug" element={<ServiceDetailView />} />
         <Route path="/support/:type" element={<SupportView />} />
+        <Route path="/wallet/verify" element={<WalletVerifyPage />} />
         
         {/* Catch all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

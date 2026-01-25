@@ -9,7 +9,7 @@ interface WithdrawalModalProps {
 }
 
 export const WithdrawalModal = ({ onClose }: WithdrawalModalProps) => {
-    const { walletBalance, hasTransactionPin, setTransactionPin, withdrawFunds } = useStore();
+    const { walletBalance, hasTransactionPin, setTransactionPin, withdrawFunds, banks, fetchBanks } = useStore();
     const [step, setStep] = useState< 'setup' | 'withdrawal' | 'success'>(hasTransactionPin ? 'withdrawal' : 'setup');
     const [pin, setPin] = useState('');
     const [confirmPin, setConfirmPin] = useState('');
@@ -18,6 +18,12 @@ export const WithdrawalModal = ({ onClose }: WithdrawalModalProps) => {
     const [accountNumber, setAccountNumber] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState('');
+
+    React.useEffect(() => {
+        if (banks.length === 0) {
+            fetchBanks();
+        }
+    }, [banks.length, fetchBanks]);
 
     const handleSetPin = async () => {
         if (pin.length !== 4) return setError("PIN must be 4 digits");
@@ -138,13 +144,38 @@ export const WithdrawalModal = ({ onClose }: WithdrawalModalProps) => {
                                 <div className="grid grid-cols-1 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Bank Name</label>
-                                        <input 
-                                            type="text" 
-                                            value={bankName}
-                                            onChange={(e) => setBankName(e.target.value)}
-                                            className="w-full bg-slate-100 border-none rounded-2xl p-4 font-bold text-sm focus:ring-2 focus:ring-brand-primary/20"
-                                            placeholder="e.g. Zenith Bank"
-                                        />
+                                        <div className="relative">
+                                            <select 
+                                                value={banks.find(b => b.name === bankName)?.code || ''}
+                                                onChange={(e) => {
+                                                    const bank = banks.find(b => b.code === e.target.value);
+                                                    setBankName(bank?.name || '');
+                                                }}
+                                                className="w-full bg-slate-100 border-none rounded-2xl p-4 font-bold text-sm focus:ring-2 focus:ring-brand-primary/20 appearance-none"
+                                            >
+                                                <option value="">Select Bank</option>
+                                                {banks.map(bank => (
+                                                    <option key={bank.id} value={bank.code}>{bank.name}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                <ChevronRight size={16} className="rotate-90" />
+                                            </div>
+                                        </div>
+
+                                        {bankName && banks.find(b => b.name === bankName) && (
+                                            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                                <div className="w-8 h-8 bg-white rounded-lg border border-slate-100 flex items-center justify-center overflow-hidden p-1">
+                                                    <img 
+                                                        src={`https://cdn.paystack.co/domain/main/logos/banks/${banks.find(b => b.name === bankName)?.code}.png`} 
+                                                        alt={bankName} 
+                                                        className="w-full h-full object-contain"
+                                                        onError={(e) => (e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png')}
+                                                    />
+                                                </div>
+                                                <p className="text-xs font-bold text-slate-900">{bankName}</p>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Account Number</label>

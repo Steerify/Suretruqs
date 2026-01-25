@@ -1,20 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building, X, Info } from 'lucide-react';
 import { Button } from '../../ui/Button';
+import { useStore } from '../../../context/StoreContext';
 
-export const BankDetailsModal = ({ onClose, onSave, userName }: { onClose: () => void, onSave: (data: {bank: string, accountNumber: string}) => void, userName: string }) => {
-    const [bankData, setBankData] = useState({ bank: '', accountNumber: '' });
+export const BankDetailsModal = ({ onClose, onSave, userName }: { onClose: () => void, onSave: (data: {bank: string, accountNumber: string, bankCode?: string}) => void, userName: string }) => {
+    const { banks, fetchBanks } = useStore();
+    const [bankData, setBankData] = useState({ bank: '', accountNumber: '', bankCode: '' });
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (banks.length === 0) {
+            fetchBanks();
+        }
+    }, []);
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate API call
+        // Simulate API call or validation
         setTimeout(() => {
             setLoading(false);
             onSave(bankData);
         }, 1500);
     };
+
+    const selectedBank = banks.find(b => b.name === bankData.bank || b.code === bankData.bankCode);
 
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -31,21 +41,46 @@ export const BankDetailsModal = ({ onClose, onSave, userName }: { onClose: () =>
               <form onSubmit={handleSave} className="space-y-4">
                   <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Bank Name</label>
-                      <select 
-                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all text-slate-900 font-medium"
-                          value={bankData.bank}
-                          onChange={e => setBankData({...bankData, bank: e.target.value})}
-                          required
-                      >
-                          <option value="">Select Bank</option>
-                          <option value="GTBank">Guaranty Trust Bank</option>
-                          <option value="Zenith">Zenith Bank</option>
-                          <option value="FirstBank">First Bank</option>
-                          <option value="UBA">United Bank for Africa</option>
-                          <option value="Access">Access Bank</option>
-                          <option value="Kuda">Kuda Microfinance Bank</option>
-                          <option value="OPay">OPay</option>
-                      </select>
+                      <div className="relative">
+                          <select 
+                              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all text-slate-900 font-medium appearance-none"
+                              value={bankData.bankCode}
+                              onChange={e => {
+                                  const bank = banks.find(b => b.code === e.target.value);
+                                  setBankData({...bankData, bank: bank?.name || '', bankCode: e.target.value});
+                              }}
+                              required
+                          >
+                              <option value="">Select Bank</option>
+                              {banks.map(bank => (
+                                  <option key={bank.id} value={bank.code}>{bank.name}</option>
+                              ))}
+                          </select>
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                              <Building size={16} />
+                          </div>
+                      </div>
+                      
+                      {selectedBank && (
+                          <div className="mt-2 flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                              <div className="w-10 h-10 bg-white rounded-lg border border-slate-100 flex items-center justify-center overflow-hidden p-1">
+                                  {selectedBank.logo ? (
+                                      <img src={selectedBank.logo} alt={selectedBank.name} className="w-full h-full object-contain" />
+                                  ) : (
+                                      <img 
+                                          src={`https://cdn.paystack.co/domain/main/logos/banks/${selectedBank.code}.png`} 
+                                          alt={selectedBank.name} 
+                                          className="w-full h-full object-contain"
+                                          onError={(e) => (e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png')}
+                                      />
+                                  )}
+                              </div>
+                              <div>
+                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Selected Bank</p>
+                                  <p className="text-sm font-bold text-slate-900 mt-1">{selectedBank.name}</p>
+                              </div>
+                          </div>
+                      )}
                   </div>
                   
                   <div>

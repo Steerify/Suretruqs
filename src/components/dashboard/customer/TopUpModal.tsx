@@ -22,11 +22,26 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({ onClose }) => {
 
     setIsProcessing(true);
     try {
+      const initiateData = await topUpWallet(numAmount);
+      
+      // DEMO MODE CHECK
+      if (initiateData.authorization_url && initiateData.authorization_url.includes('localhost')) {
+          // It's a simulated URL from our demo backend
+          window.open(initiateData.authorization_url, '_blank', 'width=500,height=600');
+          
+          // Poll or just wait a bit and verify for UX smoothness in demo
+          toast.loading("Simulating payment gateway...", { duration: 2000 });
+          setTimeout(async () => {
+              await verifyWalletDeposit(initiateData.reference);
+              toast.success("Wallet credited successfully! (Demo)");
+              onClose();
+          }, 3000);
+          return;
+      }
+
       const isLoaded = await loadPaystackScript();
       if (!isLoaded) throw new Error("Paystack failed to load");
 
-      const initiateData = await topUpWallet(numAmount);
-      
       initializePaystack({
         email: currentUser?.email,
         amount: numAmount,

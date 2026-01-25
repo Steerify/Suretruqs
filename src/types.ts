@@ -125,3 +125,19 @@ export interface Invoice {
   shipmentId: string;
   trackingId: string;
 }
+
+export interface Bank {
+  id: number;
+  name: string;
+  slug: string;
+  code: string;
+  longcode: string;
+  gateway: string | null;
+  pay_with_bank: boolean;
+  active: boolean;
+  is_deleted: boolean;
+  country: string;
+  currency: string;
+  type: string;
+  logo?: string;
+}
