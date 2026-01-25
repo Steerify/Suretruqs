@@ -9,7 +9,7 @@ export const BankDetailsModal = ({ onClose, onSave, userName }: { onClose: () =>
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (banks.length === 0) {
+        if (!banks || banks.length === 0) {
             fetchBanks();
         }
     }, []);
@@ -24,7 +24,7 @@ export const BankDetailsModal = ({ onClose, onSave, userName }: { onClose: () =>
         }, 1500);
     };
 
-    const selectedBank = banks.find(b => b.name === bankData.bank || b.code === bankData.bankCode);
+    const selectedBank = (banks || []).find(b => b.name === bankData.bank || b.code === bankData.bankCode);
 
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -46,13 +46,13 @@ export const BankDetailsModal = ({ onClose, onSave, userName }: { onClose: () =>
                               className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all text-slate-900 font-medium appearance-none"
                               value={bankData.bankCode}
                               onChange={e => {
-                                  const bank = banks.find(b => b.code === e.target.value);
+                                  const bank = (banks || []).find(b => b.code === e.target.value);
                                   setBankData({...bankData, bank: bank?.name || '', bankCode: e.target.value});
                               }}
                               required
                           >
                               <option value="">Select Bank</option>
-                              {banks.map(bank => (
+                              {(banks || []).map(bank => (
                                   <option key={bank.id} value={bank.code}>{bank.name}</option>
                               ))}
                           </select>

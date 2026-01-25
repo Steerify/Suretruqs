@@ -623,6 +623,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       adminNotifications,
       notifications,
       hasTransactionPin,
+      banks,
       login,
       signup,
       googleLogin,

@@ -20,10 +20,10 @@ export const WithdrawalModal = ({ onClose }: WithdrawalModalProps) => {
     const [error, setError] = useState('');
 
     React.useEffect(() => {
-        if (banks.length === 0) {
+        if (!banks || banks.length === 0) {
             fetchBanks();
         }
-    }, [banks.length, fetchBanks]);
+    }, [banks?.length, fetchBanks]);
 
     const handleSetPin = async () => {
         if (pin.length !== 4) return setError("PIN must be 4 digits");
@@ -146,15 +146,15 @@ export const WithdrawalModal = ({ onClose }: WithdrawalModalProps) => {
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Bank Name</label>
                                         <div className="relative">
                                             <select 
-                                                value={banks.find(b => b.name === bankName)?.code || ''}
+                                                value={(banks || []).find(b => b.name === bankName)?.code || ''}
                                                 onChange={(e) => {
-                                                    const bank = banks.find(b => b.code === e.target.value);
+                                                    const bank = (banks || []).find(b => b.code === e.target.value);
                                                     setBankName(bank?.name || '');
                                                 }}
                                                 className="w-full bg-slate-100 border-none rounded-2xl p-4 font-bold text-sm focus:ring-2 focus:ring-brand-primary/20 appearance-none"
                                             >
                                                 <option value="">Select Bank</option>
-                                                {banks.map(bank => (
+                                                {(banks || []).map(bank => (
                                                     <option key={bank.id} value={bank.code}>{bank.name}</option>
                                                 ))}
                                             </select>
@@ -162,12 +162,12 @@ export const WithdrawalModal = ({ onClose }: WithdrawalModalProps) => {
                                                 <ChevronRight size={16} className="rotate-90" />
                                             </div>
                                         </div>
-
-                                        {bankName && banks.find(b => b.name === bankName) && (
+                                        
+                                        {bankName && (banks || []).find(b => b.name === bankName) && (
                                             <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                                                 <div className="w-8 h-8 bg-white rounded-lg border border-slate-100 flex items-center justify-center overflow-hidden p-1">
                                                     <img 
-                                                        src={`https://cdn.paystack.co/domain/main/logos/banks/${banks.find(b => b.name === bankName)?.code}.png`} 
+                                                        src={`https://cdn.paystack.co/domain/main/logos/banks/${(banks || []).find(b => b.name === bankName)?.code}.png`} 
                                                         alt={bankName} 
                                                         className="w-full h-full object-contain"
                                                         onError={(e) => (e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png')}
