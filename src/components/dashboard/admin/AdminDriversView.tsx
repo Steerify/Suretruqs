@@ -80,16 +80,20 @@ export const AdminDriversView = ({
                             
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg ${
+                                    <div className="flex items-center gap-4 min-w-0">
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg overflow-hidden shrink-0 ${
                                             status === 'Online' ? 'bg-green-500 shadow-green-500/20' : 
                                             status === 'Busy' ? 'bg-brand-orange shadow-orange-500/20' : 
                                             'bg-slate-400'
                                         }`}>
-                                            {driver.name.charAt(0)}
+                                            {(() => {
+                                                const parts = (driver.name || '').split(' ');
+                                                if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+                                                return (driver.name || '?').charAt(0).toUpperCase();
+                                            })()}
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-slate-900 text-lg">{driver.name}</h3>
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="font-bold text-slate-900 text-lg truncate w-full">{driver.name}</h3>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                                                     status === 'Online' ? 'bg-green-50 text-green-600' : 

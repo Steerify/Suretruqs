@@ -7,12 +7,11 @@ import toast from 'react-hot-toast';
 import api from '../../../utils/api';
 
 const getInitials = (name: string) => {
-    return (name || 'User')
-        .split(' ')
-        .map(n => n[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
+    const parts = (name || 'User').split(' ');
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0].charAt(0).toUpperCase();
 };
 
 interface AdminUsersViewProps {

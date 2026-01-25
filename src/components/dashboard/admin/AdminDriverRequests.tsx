@@ -253,7 +253,11 @@ export const AdminDriverRequests: React.FC<AdminDriverRequestsProps> = ({
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${selectedDriver === d.id ? 'bg-white/20' : 'bg-slate-100'}`}>
-                                            {d.name.charAt(0)}
+                                            {(() => {
+                                                const parts = (d.name || '').split(' ');
+                                                if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+                                                return (d.name || '?').charAt(0).toUpperCase();
+                                            })()}
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold">{d.name}</p>
