@@ -54,6 +54,8 @@ interface StoreContextType {
   fetchNotifications: () => Promise<void>;
   markNotificationAsRead: (id: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
+  getSettings: () => Promise<any>;
+  updateSettings: (settings: any) => Promise<any>;
   refreshData: () => Promise<void>;
 }
 
@@ -608,6 +610,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       fetchNotifications,
       markNotificationAsRead,
       markAllNotificationsAsRead,
+      getSettings: async () => {
+          const res = await api.get('/admin/settings');
+          return res.data;
+      },
+      updateSettings: async (settings: any) => {
+          const res = await api.put('/admin/settings', settings);
+          toast.success("System settings updated successfully");
+          return res.data;
+      },
       refreshData: fetchAllUserData
     }}>
       {children}

@@ -19,6 +19,7 @@ import { useStore } from '../../context/StoreContext';
 import { AdminUsersView } from '../dashboard/admin/AdminUsersView';
 import { AdminFinancesView } from '../dashboard/admin/AdminFinancesView';
 import { AdminSupportView } from '../dashboard/admin/AdminSupportView';
+import { AdminSettingsView } from '../dashboard/admin/AdminSettingsView';
 
 export const AdminDashboard: React.FC = () => {
     const { 
@@ -378,6 +379,7 @@ export const AdminDashboard: React.FC = () => {
                         { id: 'users', label: 'User Directory', icon: Users },
                         { id: 'finances', label: 'Treasury', icon: Wallet },
                         { id: 'support', label: 'Operations Chat', icon: MessageSquare },
+                        { id: 'settings', label: 'Control Plane', icon: Settings },
                     ].map((item) => (
                         <button
                             key={item.id}
@@ -433,7 +435,7 @@ export const AdminDashboard: React.FC = () => {
                         </button>
 
                         <div>
-                            <h2 className="text-lg md:text-2xl font-black text-slate-900 capitalize tracking-tighter">{activeTab.replace('-', ' ')}</h2>
+                            <h2 className="text-lg md:text-2xl font-black text-slate-900 capitalize tracking-tighter">{activeTab === 'driver-requests' ? 'Job Dispatch' : activeTab.replace('-', ' ')}</h2>
                             <div className="hidden md:flex items-center gap-2 mt-0.5">
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Environment: PROD</span>
                                 <div className="w-1 h-1 rounded-full bg-slate-300" />
@@ -507,7 +509,10 @@ export const AdminDashboard: React.FC = () => {
                             )}
                         </div>
 
-                        <button className="hidden md:flex w-12 h-12 bg-slate-100 text-slate-600 rounded-2xl items-center justify-center hover:bg-slate-200 transition-all border border-transparent">
+                        <button 
+                            onClick={() => setActiveTab('settings')}
+                            className={`hidden md:flex w-12 h-12 rounded-2xl items-center justify-center transition-all border ${activeTab === 'settings' ? 'bg-brand-primary text-white border-brand-primary shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200'}`}
+                        >
                             <Settings size={20} />
                         </button>
                     </div>
@@ -542,7 +547,7 @@ export const AdminDashboard: React.FC = () => {
                             />
                         )}
                         {activeTab === 'finances' && <AdminFinancesView />}
-                        {activeTab === 'support' && (
+                         {activeTab === 'support' && (
                             <AdminSupportView 
                                 onOpenChat={(sId, uId, uName, role) => setChatModal({ 
                                     shipmentId: sId, 
@@ -552,7 +557,8 @@ export const AdminDashboard: React.FC = () => {
                                 })} 
                             />
                         )}
-                        {['overview', 'shipments', 'driver-requests', 'users', 'finances', 'support'].indexOf(activeTab) === -1 && (
+                        {activeTab === 'settings' && <AdminSettingsView />}
+                        {['overview', 'shipments', 'driver-requests', 'users', 'finances', 'support', 'settings'].indexOf(activeTab) === -1 && (
                             <div className="flex flex-col items-center justify-center h-[600px] text-slate-400 border-4 border-dashed border-slate-200 rounded-[3rem] bg-white group hover:border-brand-primary/20 transition-all duration-700">
                                 <div className="p-8 bg-slate-50 rounded-[2.5rem] mb-6 group-hover:rotate-12 transition-transform duration-500">
                                     <Activity size={64} className="text-slate-200 group-hover:text-brand-primary/20" />
