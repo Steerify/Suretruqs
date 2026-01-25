@@ -113,7 +113,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       // Fetch customers and all users (if admin)
       if (userData.role === UserRole.ADMIN) {
          const usersRes = await api.get('/users'); 
-         const usersData = usersRes.data?.data || usersRes.data || [];
+         const usersDataRaw = usersRes.data?.data || usersRes.data;
+         const usersData = Array.isArray(usersDataRaw) ? usersDataRaw : [];
          console.log('Fetched All Users:', usersData.length);
          setAllUsers(usersData);
          setCustomers(usersData.filter((u: User) => u.role === UserRole.CUSTOMER));
@@ -621,7 +622,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       markAllNotificationsAsRead,
       getSettings: async () => {
           const res = await api.get('/admin/settings');
-          return res.data;
+          return res.data?.data || res.data;
       },
       updateSettings: async (settings: any) => {
           const res = await api.put('/admin/settings', settings);
