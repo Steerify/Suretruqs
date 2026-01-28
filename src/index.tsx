@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { StoreProvider } from './context/StoreContext';
+import { MapProvider } from './context/MapContext';
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
@@ -18,7 +19,9 @@ root.render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <StoreProvider>
-        <App />
+        <MapProvider>
+          <App />
+        </MapProvider>
       </StoreProvider>
     </GoogleOAuthProvider>
   </React.StrictMode>
