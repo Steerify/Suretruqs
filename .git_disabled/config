@@ -1,0 +1,13 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[branch "master"]
+	gk-last-accessed = 2026-01-27T07:06:22.755Z
+	gk-last-modified = 2026-01-25T16:38:51.900Z
+	remote = origin
+	merge = refs/heads/master
+[remote "origin"]
+	url = https://github.com/Steerify/Suretruqs.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
