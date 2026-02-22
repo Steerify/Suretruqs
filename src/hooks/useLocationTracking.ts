@@ -4,7 +4,11 @@ import { useStore } from '../context/StoreContext';
 
 const SOCKET_URL = (import.meta as any).env.VITE_SOCKET_URL || 'http://localhost:5000';
 
-export const useLocationTracking = (shipmentId: string | null, isDriver: boolean) => {
+export const useLocationTracking = (
+  shipmentId: string | null,
+  isDriver: boolean,
+  trackingId?: string | null
+) => {
   const socketRef = useRef<Socket | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const { currentUser } = useStore();
@@ -12,7 +16,13 @@ export const useLocationTracking = (shipmentId: string | null, isDriver: boolean
   useEffect(() => {
     if (!isDriver || !shipmentId || !currentUser) return;
 
-    socketRef.current = io(SOCKET_URL);
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    socketRef.current = io(SOCKET_URL, {
+      auth: { token },
+      transports: ['websocket', 'polling'],
+    });
 
     const startTracking = () => {
       if (!navigator.geolocation) {
@@ -28,6 +38,7 @@ export const useLocationTracking = (shipmentId: string | null, isDriver: boolean
             lat: latitude,
             lng: longitude,
             driverId: currentUser.id || (currentUser as any)._id,
+            trackingId: trackingId || undefined,
           });
         },
         (error) => {

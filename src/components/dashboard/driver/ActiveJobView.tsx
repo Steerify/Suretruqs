@@ -1,31 +1,91 @@
-import React from 'react';
+import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Truck, Navigation, CheckCircle, MapPin, MessageSquare, Phone, XCircle } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Shipment, ShipmentStatus } from '../../../types';
 import { useLocationTracking } from '../../../hooks/useLocationTracking';
+import api from '../../../utils/api';
+import { useStore } from '../../../context/StoreContext';
 
 interface ActiveJobViewProps {
     activeJob: Shipment;
-    onUpdateStatus: (id: string, status: ShipmentStatus) => void;
+    onUpdateStatus: (id: string, status: ShipmentStatus, meta?: { deliveryCode?: string; proofUrl?: string }) => Promise<void> | void;
     setShowCustomerChat: (show: boolean) => void;
     setShowSOS: (show: boolean) => void;
     setShowFullMap: (show: boolean) => void;
 }
 
 export const ActiveJobView = ({ activeJob, onUpdateStatus, setShowCustomerChat, setShowSOS, setShowFullMap }: ActiveJobViewProps) => {
-    useLocationTracking(activeJob.id, true);
+    useLocationTracking(activeJob.id, true, activeJob.trackingId);
+    const { reportIssue } = useStore();
+    const [isUpdating, setIsUpdating] = useState(false);
 
-    const handleStatusUpdate = () => {
+    const pickFile = () =>
+        new Promise<File | null>((resolve) => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*,application/pdf';
+            input.onchange = () => resolve(input.files?.[0] || null);
+            input.click();
+        });
+
+    const uploadProof = async (): Promise<string | null> => {
+        const file = await pickFile();
+        if (!file) return null;
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('File is too large. Max size is 5MB.');
+            return null;
+        }
+
+        const form = new FormData();
+        form.append('file', file);
+
+        const response = await api.post('/upload/document', form, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        return response.data?.url || response.data?.data?.url || null;
+    };
+
+    const handleStatusUpdate = async () => {
         if (!activeJob) return;
     
         let nextStatus = activeJob.status;
         if (activeJob.status === ShipmentStatus.ASSIGNED) nextStatus = ShipmentStatus.PICKED_UP;
         else if (activeJob.status === ShipmentStatus.PICKED_UP) nextStatus = ShipmentStatus.IN_TRANSIT;
         else if (activeJob.status === ShipmentStatus.IN_TRANSIT) nextStatus = ShipmentStatus.DELIVERED;
-    
-        onUpdateStatus(activeJob.id, nextStatus);
+        if (nextStatus === activeJob.status) return;
+
+        setIsUpdating(true);
+        try {
+            const meta: { proofUrl?: string; deliveryCode?: string } = {};
+
+            if (nextStatus === ShipmentStatus.PICKED_UP || nextStatus === ShipmentStatus.DELIVERED) {
+                const proofUrl = await uploadProof();
+                if (!proofUrl) {
+                    toast.error('Photo proof is required to continue.');
+                    return;
+                }
+                meta.proofUrl = proofUrl;
+            }
+
+            if (nextStatus === ShipmentStatus.DELIVERED) {
+                const code = window.prompt('Enter delivery code');
+                if (!code) {
+                    toast.error('Delivery code is required.');
+                    return;
+                }
+                meta.deliveryCode = code;
+            }
+
+            await onUpdateStatus(activeJob.id, nextStatus, meta);
+        } catch (err: any) {
+            toast.error(err?.message || 'Failed to update status');
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     const getStatusButtonText = () => {
@@ -156,10 +216,23 @@ export const ActiveJobView = ({ activeJob, onUpdateStatus, setShowCustomerChat, 
                 <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
                     <h3 className="font-bold text-slate-900 mb-6 text-lg">Actions</h3>
                     <div className="flex flex-col gap-4">
-                        <Button variant="cta" className="w-full py-4 text-lg shadow-lg shadow-orange-500/20 rounded-xl font-bold" onClick={handleStatusUpdate}>
+                        <Button variant="cta" className="w-full py-4 text-lg shadow-lg shadow-orange-500/20 rounded-xl font-bold" onClick={handleStatusUpdate} isLoading={isUpdating}>
                             {getStatusButtonText()}
                         </Button>
-                        <Button variant="danger" className="w-full shadow-sm py-4 rounded-xl bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold" onClick={() => toast.success("Issue Reported!")}>
+                        <Button
+                          variant="danger"
+                          className="w-full shadow-sm py-4 rounded-xl bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold"
+                          onClick={async () => {
+                              const reason = window.prompt('What issue occurred?');
+                              if (!reason) return;
+                              try {
+                                  await reportIssue(activeJob.id, reason);
+                                  toast.success('Issue reported');
+                              } catch (err: any) {
+                                  toast.error(err?.message || 'Failed to report issue');
+                              }
+                          }}
+                        >
                             <XCircle size={20} className="mr-2" /> Report Issue
                         </Button>
                     </div>

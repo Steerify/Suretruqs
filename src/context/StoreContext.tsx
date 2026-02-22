@@ -38,7 +38,8 @@ interface StoreContextType {
   deleteShipment: (id: string) => Promise<void>;
   acceptJob: (shipmentId: string) => Promise<void>;
   rejectJob: (shipmentId: string) => Promise<void>;
-  updateStatus: (shipmentId: string, newStatus: ShipmentStatus) => Promise<void>;
+  updateStatus: (shipmentId: string, newStatus: ShipmentStatus, meta?: { deliveryCode?: string; proofUrl?: string }) => Promise<void>;
+  reportIssue: (shipmentId: string, reason: string, notes?: string) => Promise<void>;
   updateDriverProfile: (data: any) => Promise<void>;
   rateDriver: (shipmentId: string, rating: number, review: string) => Promise<void>;
   dismissJobAlert: () => void;
@@ -428,7 +429,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const updateShipment = async (id: string, data: Partial<Shipment>) => {
     try {
       const res = await api.patch(`/shipments/${id}`, data);
-      setShipments(prev => prev.map(s => s.id === id ? res.data?.data || res.data : s));
+      const updated = res.data?.data || res.data;
+      setShipments(prev => prev.map(s => s.id === id ? updated : s));
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update shipment');
     }
@@ -473,15 +475,29 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  const updateStatus = async (shipmentId: string, newStatus: ShipmentStatus) => {
+  const updateStatus = async (shipmentId: string, newStatus: ShipmentStatus, meta?: { deliveryCode?: string; proofUrl?: string }) => {
     try {
-      const response = await api.patch(`/shipments/${shipmentId}/status`, { status: newStatus });
+      const response = await api.patch(`/shipments/${shipmentId}/status`, { status: newStatus, ...meta });
+      const updated = response.data?.data || response.data;
       setShipments(prev => prev.map(s => 
-        s.id === shipmentId ? response.data : s
+        s.id === shipmentId ? updated : s
       ));
     } catch (error: any) {
       console.error('Update Status Error:', error);
       throw new Error(error.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  const reportIssue = async (shipmentId: string, reason: string, notes?: string) => {
+    try {
+      const response = await api.post(`/shipments/${shipmentId}/report-issue`, { reason, notes });
+      const updated = response.data?.data || response.data;
+      setShipments(prev => prev.map(s => 
+        s.id === shipmentId ? updated : s
+      ));
+    } catch (error: any) {
+      console.error('Report Issue Error:', error);
+      throw new Error(error.response?.data?.message || 'Failed to report issue');
     }
   };
 
@@ -544,7 +560,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const response = await api.patch(`/shipments/${shipmentId}/assign-driver`, updateData);
       
       setShipments(prev => prev.map(s => 
-        s.id === shipmentId ? response.data : s
+        s.id === shipmentId ? (response.data?.data || response.data) : s
       ));
     } catch (error: any) {
       console.error('Assign Driver Error:', error);
@@ -619,6 +635,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       acceptJob,
       rejectJob,
       updateStatus,
+      reportIssue,
       updateDriverProfile,
       rateDriver,
       dismissJobAlert,

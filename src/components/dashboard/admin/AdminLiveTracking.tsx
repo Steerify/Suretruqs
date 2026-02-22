@@ -3,15 +3,26 @@ import MapboxGL from '../../common/MapboxGL';
 import { useStore } from '../../../context/StoreContext';
 import { useMap } from '../../../context/MapContext';
 import mapboxgl from 'mapbox-gl';
+import { ShipmentStatus } from '../../../types';
 
 const AdminLiveTracking: React.FC = () => {
-  const { drivers, shipmentLocations } = useStore();
+  const { drivers, shipments, shipmentLocations } = useStore();
   const { mapRef } = useMap();
   const [selectedDriver, setSelectedDriver] = useState<any>(null);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !drivers.length) return;
+
+    const activeShipmentByDriver = new Map<string, string>();
+    shipments.forEach((s) => {
+      if (
+        s.driverId &&
+        [ShipmentStatus.ASSIGNED, ShipmentStatus.PICKED_UP, ShipmentStatus.IN_TRANSIT].includes(s.status)
+      ) {
+        activeShipmentByDriver.set(s.driverId, s.id);
+      }
+    });
 
     // Convert drivers to GeoJSON
     const geojson: any = {
@@ -21,8 +32,8 @@ const AdminLiveTracking: React.FC = () => {
         geometry: {
           type: 'Point',
           coordinates: [
-            shipmentLocations[d.id]?.lng || d.currentLocation?.lng || 3.3792,
-            shipmentLocations[d.id]?.lat || d.currentLocation?.lat || 6.5244
+            shipmentLocations[activeShipmentByDriver.get(d.id) || '']?.lng || d.currentLocation?.lng || 3.3792,
+            shipmentLocations[activeShipmentByDriver.get(d.id) || '']?.lat || d.currentLocation?.lat || 6.5244
           ]
         },
         properties: {
@@ -86,7 +97,7 @@ const AdminLiveTracking: React.FC = () => {
         }
       });
     }
-  }, [drivers, shipmentLocations, mapRef]);
+  }, [drivers, shipments, shipmentLocations, mapRef]);
 
   return (
     <div className="relative w-full h-full">
@@ -103,11 +114,13 @@ const AdminLiveTracking: React.FC = () => {
             <button
               key={driver.id}
               onClick={() => {
+                const activeShipmentId = activeShipmentByDriver.get(driver.id);
+                const loc = activeShipmentId ? shipmentLocations[activeShipmentId] : null;
                 setSelectedDriver(driver);
                 mapRef.current?.flyTo({
                   center: [
-                    shipmentLocations[driver.id]?.lng || 3.3792,
-                    shipmentLocations[driver.id]?.lat || 6.5244
+                    loc?.lng || 3.3792,
+                    loc?.lat || 6.5244
                   ],
                   zoom: 15
                 });
