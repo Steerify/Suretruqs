@@ -4,6 +4,7 @@ import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Shipment } from '../../../types';
 import { useStore } from '../../../context/StoreContext';
+import { COMBINED_LOCATIONS } from '../../../constants/Locations';
 
 export const NewShipmentView = ({ onBack, onCreate }: { onBack: () => void, onCreate: (data: Partial<Shipment>) => Promise<Shipment> }) => {
     const [formData, setFormData] = useState({
@@ -77,7 +78,10 @@ export const NewShipmentView = ({ onBack, onCreate }: { onBack: () => void, onCr
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Pickup Address</label>
                         <div className="relative">
                             <MapPin className="absolute left-3 top-3 text-slate-400" size={18}/>
-                            <input required type="text" className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all text-slate-900 font-medium" placeholder="e.g. 123 Main St, Ikeja" value={formData.pickup} onChange={e => setFormData({...formData, pickup: e.target.value})} />
+                            <select required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all text-slate-900 font-medium appearance-none" value={formData.pickup} onChange={e => setFormData({...formData, pickup: e.target.value})}>
+                                <option value="">Select pickup location</option>
+                                {COMBINED_LOCATIONS.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                            </select>
                         </div>
                         {savedLocations.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
@@ -98,7 +102,10 @@ export const NewShipmentView = ({ onBack, onCreate }: { onBack: () => void, onCr
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Dropoff Address</label>
                         <div className="relative">
                             <MapPin className="absolute left-3 top-3 text-slate-400" size={18}/>
-                            <input required type="text" className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all text-slate-900 font-medium" placeholder="e.g. 456 Market Rd, Aba" value={formData.dropoff} onChange={e => setFormData({...formData, dropoff: e.target.value})} />
+                            <select required className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all text-slate-900 font-medium appearance-none" value={formData.dropoff} onChange={e => setFormData({...formData, dropoff: e.target.value})}>
+                                <option value="">Select dropoff location</option>
+                                {COMBINED_LOCATIONS.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                            </select>
                         </div>
                         {savedLocations.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">

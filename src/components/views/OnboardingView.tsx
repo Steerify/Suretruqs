@@ -7,6 +7,7 @@ import { Button } from '../ui/Button';
 import api from '../../utils/api';
 import { Country, State, City }  from 'country-state-city';
 import { CheckCircle2, Truck, User as UserIcon, Calendar, MapPin, FileText, CreditCard, ShieldCheck, Upload, ArrowRight, ArrowLeft, Package, Building, AlertCircle, Globe } from 'lucide-react';
+import { NIGERIA_STATES, LAGOS_LOCATIONS } from '../../constants/Locations';
 
 export const OnboardingView: React.FC = () => {
   const { currentUser, completeOnboarding } = useStore();
@@ -113,7 +114,7 @@ export const OnboardingView: React.FC = () => {
           location: { 
             address: formData.address, 
             country: Country.getCountryByCode(formData.country)?.name,
-            state: State.getStateByCodeAndCountry(formData.state, formData.country)?.name,
+            state: formData.country === 'NG' ? formData.state : State.getStateByCodeAndCountry(formData.state, formData.country)?.name,
             city: formData.city,
             lat: 0, 
             lng: 0 
@@ -202,8 +203,15 @@ export const OnboardingView: React.FC = () => {
   };
 
   const countries = Country.getAllCountries();
-  const states = formData.country ? State.getStatesOfCountry(formData.country) : [];
-  const cities = formData.state ? City.getCitiesOfState(formData.country, formData.state) : [];
+  const states = formData.country === 'NG' 
+    ? NIGERIA_STATES.map(s => ({ isoCode: s, name: s })) 
+    : (formData.country ? State.getStatesOfCountry(formData.country) : []);
+  
+  const cities = formData.country === 'NG' && formData.state === 'Lagos'
+    ? LAGOS_LOCATIONS.map(c => ({ name: c }))
+    : formData.country === 'NG' && formData.state !== 'Lagos'
+    ? []
+    : (formData.state ? City.getCitiesOfState(formData.country, formData.state) : []);
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       const countryCode = e.target.value;
@@ -394,6 +402,15 @@ export const OnboardingView: React.FC = () => {
                                             <option key={c.name} value={c.name}>{c.name}</option>
                                         ))}
                                     </select>
+                                    {formData.country === 'NG' && formData.state !== 'Lagos' && formData.state !== '' && (
+                                        <input
+                                            type="text"
+                                            placeholder="Enter City"
+                                            className="w-full px-4 py-3 mt-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium"
+                                            value={formData.city}
+                                            onChange={(e) => updateForm('city', e.target.value)}
+                                        />
+                                    )}
                                 </div>
                             </div>
                             <div className="md:col-span-2">
@@ -625,6 +642,15 @@ export const OnboardingView: React.FC = () => {
                                             <option key={c.name} value={c.name}>{c.name}</option>
                                         ))}
                                     </select>
+                                    {formData.country === 'NG' && formData.state !== 'Lagos' && formData.state !== '' && (
+                                        <input
+                                            type="text"
+                                            placeholder="Enter City"
+                                            className="w-full px-4 py-3 mt-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium"
+                                            value={formData.city}
+                                            onChange={(e) => updateForm('city', e.target.value)}
+                                        />
+                                    )}
                                 </div>
                             </div>
                             <div>
